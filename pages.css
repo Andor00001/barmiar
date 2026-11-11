@@ -1,0 +1,13 @@
+:root{--paper:#f3f5fa;--card:#fff;--ink:#0f1a36;--muted:#58627c;--line:#d8deea;--tag:#ffd400;--tag-ink:#1b1a00;--save:#0a7446;--promo:#c9301c;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--paper:#0c1222;--card:#151d33;--ink:#eef1f8;--muted:#9aa5bf;--line:#28324d;--save:#4fd69a;--promo:#ff7460;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+a{color:inherit}.top,main,footer{max-width:860px;margin:0 auto;padding:14px 20px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font-weight:800;font-size:24px;letter-spacing:-.03em;text-decoration:none}.logo i{display:inline-block;width:9px;height:9px;background:var(--tag);margin-left:2px;border:1px solid var(--ink)}
+.btn{background:var(--ink);color:var(--paper);text-decoration:none;font-weight:700;padding:10px 16px;border-radius:10px;display:inline-block}
+h1{font-size:clamp(28px,5vw,42px);line-height:1.05;letter-spacing:-.03em;margin:14px 0 10px;text-wrap:balance}h2{font-size:21px;margin:30px 0 8px}
+.lead{font-size:18px;max-width:62ch}.crumb,.m,footer{color:var(--muted);font-size:13.5px}.scroll{overflow-x:auto;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 14px;margin:18px 0}
+table{width:100%;border-collapse:collapse;font-size:15px}th{text-align:left;font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding:8px 10px 8px 0;border-bottom:2px solid var(--ink)}
+td{padding:10px 10px 10px 0;border-bottom:1px dashed var(--line);vertical-align:top}.r{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums;padding-right:0}
+tr.win td{background:linear-gradient(90deg,transparent,rgba(255,212,0,.22))}s{color:var(--muted);font-size:13px}.akc{color:var(--promo);border:1px solid currentColor;border-radius:3px;font-size:11px;padding:0 4px;text-transform:uppercase}
+.cta{margin:22px 0}.links a{display:inline-block;margin:0 6px 8px 0;padding:5px 11px;border:1.5px solid var(--line);border-radius:999px;text-decoration:none;font-size:14px;font-weight:600}.links a:hover{border-color:var(--ink)}
+footer{border-top:1px solid var(--line);margin-top:30px}

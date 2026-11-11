@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://andor00001.github.io/barmiar/sitemap.xml
