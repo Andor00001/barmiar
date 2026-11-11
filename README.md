@@ -1,7 +1,7 @@
 # Bármiár
 
 Bevásárlólista-optimalizáló: megmondja, melyik boltból mit érdemes venni vagy rendelni, és mennyit spórolsz vele.
-Élő oldal: https://andor00001.github.io/barmiar/
+Élő oldal: https://barmiar.hu/
 
 ## Mi hol van
 - `index.html` – a teljes alkalmazás (kosárbontó, cetli, akciók, boltok, beépíthető kalkulátor).

@@ -4,7 +4,7 @@
 import { writeFile, readFile, mkdir, rm } from 'node:fs/promises';
 
 const API = 'https://arfigyelo.gvh.hu/api';
-const SITE = (process.env.SITE_URL || 'https://andor00001.github.io/barmiar/').replace(/\/?$/, '/');
+const SITE = (process.env.SITE_URL || 'https://barmiar.hu/').replace(/\/?$/, '/');
 const CHAINS = {
   '55b678e0-4e02-49d7-86da-ba6fba862a7e': 'aldi', 'e9cc63fd-52e0-4c1e-ba8d-d135d7285c63': 'auchan',
   'f95031d8-84a5-4edf-b4fa-18b2cbae2ea1': 'lidl', '53b66cb6-a24f-420d-9861-d38757467d07': 'penny',

@@ -17,7 +17,7 @@ jobs:
       - name: Árak letöltése és oldalak újraépítése
         run: node scripts/update.mjs
         env:
-          SITE_URL: https://andor00001.github.io/barmiar/
+          SITE_URL: https://barmiar.hu/
       - name: Változások mentése
         run: |
           git config user.name "barmiar-bot"
