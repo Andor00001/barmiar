@@ -286,7 +286,7 @@ footer p{margin:0 0 6px;max-width:86ch}
 .del td{padding:4px 0 4px 6px}
 .del td:first-child{padding-left:0;font-weight:600;white-space:nowrap}
 .del input{width:100%;min-width:62px;padding:8px;text-align:right;font-variant-numeric:tabular-nums}
-input[type=number]{background:var(--soft);border:1.5px solid transparent;border-radius:10px;padding:12px 14px}
+input[type=number],input[type=date]{background:var(--soft);color:var(--ink);font:inherit;border:1.5px solid transparent;border-radius:10px;padding:12px 14px}
 .prog{height:8px;background:var(--soft);border-radius:4px;overflow:hidden;margin-top:6px}
 .prog i{display:block;height:100%;background:var(--save);border-radius:4px}
 .verdict{background:var(--soft);border-radius:12px;padding:12px 14px;font-size:14.5px;margin:10px 0 4px}
@@ -474,6 +474,19 @@ nav.main a.hot[aria-current="page"]{background:var(--promo);color:var(--promo-in
   </form>
   <div class="filters" style="align-items:center"><select id="find-sort" aria-label="Rendezés"><option value="u">Legjobb egységár elöl</option><option value="d">Legnagyobb árkülönbség elöl</option><option value="n">Név szerint</option></select><span class="hint" id="find-count"></span></div>
   <div id="find-res"></div>
+  <div class="sec-h" style="margin-top:30px"><h2>Olvasói beküldött árak</h2><span class="hint">Tesco, Spar és bármelyik bolt: amit valaki a polcon látott.</span></div>
+  <div id="rep-list"></div>
+  <details class="panel" style="margin-top:14px" id="rep-box">
+    <summary style="cursor:pointer;font-weight:700">Láttál egy árat a boltban? Küldd be!</summary>
+    <form data-form="rep" class="stack" style="gap:10px;margin-top:12px">
+      <select id="rep-chain" required aria-label="Bolt"></select>
+      <input type="text" id="rep-product" required minlength="3" maxlength="120" placeholder="Termék pontos neve, pl. Dreher Classic 0,5 l doboz" aria-label="Termék neve">
+      <div class="row"><input type="number" id="rep-price" required min="10" max="500000" inputmode="numeric" placeholder="Ár (Ft)" aria-label="Ár forintban" style="width:140px"><input type="text" id="rep-pack" maxlength="30" placeholder="Kiszerelés, pl. 0,5 l" aria-label="Kiszerelés" style="width:180px"><input type="date" id="rep-date" required aria-label="Mikor láttad?" style="width:170px"></div>
+      <input type="text" id="rep-hp" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-9999px">
+      <div><button class="btn" type="submit">Beküldöm</button></div>
+      <p class="hint">Ellenőrzés után „olvasói beküldött ár” jelöléssel jelenik meg, név nélkül. Csak az elmúlt két hétben látott árat küldj.</p>
+    </form>
+  </details>
 </section>
 <section id="v-akciok" class="page" hidden>
   <div class="pban"><img src="img/akciok.webp" alt="" width="1280" height="384" loading="lazy"><div class="pban-t"><span class="burst">% Akciók</span><h2>Mai legnagyobb kedvezmények</h2><p id="deal-lead">Az áruházláncok által ma akciósként jelentett árak, a legnagyobb engedménnyel elöl.</p></div></div>
@@ -482,7 +495,7 @@ nav.main a.hot[aria-current="page"]{background:var(--promo);color:var(--promo-in
     <div>
       <div class="panel dtop"><div class="cats" id="deal-cats"></div><input type="search" id="deal-q" placeholder="Keresés az akciók között…" aria-label="Keresés az akciók között" autocomplete="off"></div>
       <div class="panel dtable"><div class="dhead"><span></span><span>Termék</span><span>Bolt</span><button type="button" data-act="dsort" data-s="pct">Kedv. ↓</button><button type="button" data-act="dsort" data-s="p">Ár ↑</button><button type="button" data-act="dsort" data-s="u">Egységár ↑</button><span></span></div><div id="deals"></div></div>
-      <p class="hint" style="margin-top:10px">Forrás: GVH Árfigyelő, a szórólap-ajánlatoknál a Lidl, a Penny és az Aldi honlapja. A „Megnézem” a bolt saját oldalára visz. Boltonkénti listák: <a href="akciok/">mai akciók oldala</a>.</p>
+      <p class="hint" style="margin-top:10px">Forrás: GVH Árfigyelő, a szórólap-ajánlatoknál a Lidl, a Penny és az Aldi honlapja. Tesco- vagy Spar-árat láttál a polcon? <a href="#termekek">Küldd be a Termékek oldalon.</a> A „Megnézem” a bolt saját oldalára visz. Boltonkénti listák: <a href="akciok/">mai akciók oldala</a>.</p>
     </div>
   </div>
 </section>
@@ -873,7 +886,14 @@ function renderStores(){var its=items(),G=gate(),rows=REAL.map(function(s){var t
   $('store-dir').innerHTML='<table class="tbl"><thead><tr><th>Bolt</th><th>Típus</th><th>Házhozszállítás</th><th class="r">Honlap</th></tr></thead><tbody>'+CH.map(function(s){var o=s.on?onOf(s):null;return'<tr><td><span class="row" style="gap:8px;flex-wrap:nowrap">'+dot(s)+'<b>'+esc(s.n)+'</b></span></td><td>'+esc(s.t)+'</td><td>'+(o?'kb. <span class="num">'+ft(o.fee)+'</span>'+(o.free?', <span class="num">'+ft(o.free)+'</span> felett ingyenes':'')+(o.min?', minimum <span class="num">'+ft(o.min)+'</span>':', nincs minimum'):'<span class="hint">nincs saját kiszállítás</span>')+(s.note?'<span class="hint" style="display:block">'+esc(s.note)+'</span>':'')+'</td><td class="r"><a href="'+out(s.url)+'" target="_blank" rel="noopener" data-out="'+s.id+'" data-kind="open">megnyitás</a></td></tr>'}).join('')+'</tbody></table>';
 }
 /* ---------- termékkereső ---------- */
-function renderFind(){var box=$('find-res');if(!box||!DATA)return;var qi=$('find-q');if(document.activeElement!==qi)qi.value=S.fq||'';$('find-sort').value=S.fs||'u';
+var REP=null;
+function loadReports(){if(REP)return;REP=[];try{fetch(SB+'/rest/v1/price_reports?select=chain,product,price,pack,seen_on&approved=eq.true&order=seen_on.desc&limit=300',{headers:{apikey:SBKEY}}).then(function(r){return r.ok?r.json():[]}).then(function(d){REP=Array.isArray(d)?d:[];renderReports()}).catch(function(){})}catch(e){}}
+function renderReports(){var el=$('rep-list'),sel=$('rep-chain');if(!el)return;
+  if(!sel.options.length){sel.innerHTML=['tesco','spar'].concat(CH.map(function(s){return s.id}).filter(function(i){return i!=='tesco'&&i!=='spar'})).map(function(i){return'<option value="'+i+'">'+esc(SM[i].n)+'</option>'}).join('');$('rep-date').value=new Date().toISOString().slice(0,10)}
+  var ws=wwords(S.fq||''),l=(REP||[]).filter(function(r){if(!ws.length)return true;var z=' '+norm(r.product).replace(/-/g,' ')+' ';for(var i=0;i<ws.length;i++)if(z.indexOf(' '+ws[i])<0)return false;return true}).slice(0,12);
+  el.innerHTML=l.length?'<div class="prods">'+l.map(function(r){var st=SM[r.chain];return'<div class="prod"><div><div class="nm">'+esc(r.product)+'</div><div class="sub">'+(r.pack?esc(r.pack)+' · ':'')+'látták: '+esc(r.seen_on)+'</div></div><div class="pps"><span class="pp win">'+esc(st?st.n:r.chain)+' <b>'+ft(r.price)+'</b></span><span class="badge">olvasói beküldött ár</span></div></div>'}).join('')+'</div>':'<p class="hint">'+(ws.length?'Erre a keresésre még nincs beküldött ár.':'Még nincs jóváhagyott beküldött ár. Légy te az első!')+'</p>'}
+function renderFind(){renderFind0();loadReports();renderReports()}
+function renderFind0(){var box=$('find-res');if(!box||!DATA)return;var qi=$('find-q');if(document.activeElement!==qi)qi.value=S.fq||'';$('find-sort').value=S.fs||'u';
   if(!PROD){$('find-count').textContent='';box.innerHTML='<p class="hint">Termékadatok betöltése…</p>';loadProducts();return}
   var ws=wwords(S.fq||'');
   if(!ws.length){$('find-count').textContent=ft(PROD.p.length).replace(/\s*Ft$/,'')+' termék';box.innerHTML='<p class="hint">Írj be egy terméket vagy márkát. Népszerű keresések:</p><div class="links">'+['tej','vaj','kenyér','csirkemell','kávé','sajt','mosószer','pelenka','fogkrém','sampon'].map(function(x){return'<button class="chip" type="button" data-act="find" data-q="'+x+'">'+x+'</button>'}).join('')+'</div>';return}
@@ -949,6 +969,9 @@ document.addEventListener('submit',function(ev){ev.preventDefault();var f=ev.tar
     var ok=function(msg){S.reg=em;S.used=0;toast(msg||'Kész, innentől minden ingyenes.');doBuild()};
     post('signups',{email:em,newsletter:news,source:location.hostname.slice(0,70)}).then(function(r){if(r.ok||r.status===409)ok();else{btn.disabled=false;btn.textContent=lab;toast('Nem sikerült a regisztráció. Próbáld újra.')}},
       function(){if(PREVIEW)ok('Előnézet: itt nem mentjük az e-mail-címet.');else{btn.disabled=false;btn.textContent=lab;toast('Nincs kapcsolat. Próbáld újra.')}})}
+  else if(f.dataset.form==='rep'){if($('rep-hp').value)return;var row={chain:$('rep-chain').value,product:$('rep-product').value.trim().slice(0,120),price:Math.round(+$('rep-price').value),pack:$('rep-pack').value.trim().slice(0,30)||null,seen_on:$('rep-date').value};
+    if(row.product.length<3||!(row.price>=10)){toast('Add meg a termék nevét és az árát.');return}
+    post('price_reports',row).then(function(r){if(r.ok){f.reset();$('rep-date').value=row.seen_on;toast('Köszönjük! Ellenőrzés után megjelenik.')}else toast('Nem sikerült. Az ár 10 Ft feletti, a dátum két hétnél nem régebbi legyen.')},function(){toast('Nincs kapcsolat. Próbáld újra.')})}
   else if(f.dataset.form==='widget'){wText=f.querySelector('input').value;renderEmbed()}
 });
 document.addEventListener('change',function(ev){var t=ev.target;if(!DATA)return;
