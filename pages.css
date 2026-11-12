@@ -12,3 +12,7 @@ td{padding:10px 10px 10px 0;border-bottom:1px dashed var(--line);vertical-align:
 tr.win td{background:linear-gradient(90deg,transparent,rgba(255,212,0,.22))}s{color:var(--muted);font-size:13px}.akc{color:#fff;background:#d92d20;border-radius:3px;font-size:11px;padding:0 4px;text-transform:uppercase}
 .cta{margin:22px 0}.links a{display:inline-block;background:var(--card);color:var(--ink);margin:0 6px 8px 0;padding:5px 11px;border:1.5px solid var(--line);border-radius:999px;text-decoration:none;font-size:14px;font-weight:600}.links a:hover{border-color:var(--ink)}
 footer{border-top:1px solid var(--line);margin-top:30px}
+
+.ban{width:100%;height:auto;aspect-ratio:10/3;object-fit:cover;border-radius:16px;margin-top:10px;display:block}
+.pct{background:#d92d20;color:#fff;font-weight:800;border-radius:6px;padding:1px 7px;font-size:13.5px}
+h3{font-size:16.5px;margin:18px 0 4px}h3+p{margin:0;max-width:66ch}

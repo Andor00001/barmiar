@@ -17,3 +17,14 @@ Bevásárlólista-optimalizáló: megmondja, melyik boltból mit érdemes venni 
 
 ## Regisztráció és átkattintás-mérés
 A `signups` és `outbound_clicks` táblák a `barmiar` Supabase-projektben vannak. A böngésző csak beírni tud, olvasni nem.
+
+
+## 2026. novemberi bővítés
+
+- **Cetli a főoldal tetején**: jegyzettömb, pipálható tételek, egy gombos ár-összehasonlítás.
+- **Két lista**: „Legjobb áron” és „Kívánság szerint” (a felírt márka, termék pontos ára). Ehhez a `data/products.json` tartalmazza mind a ~15 600 terméket.
+- **Termékkereső** (`#termekek`, illetve `?q=keresőszó`).
+- **Akciók fül**: az összes ma jelentett akció, boltra, kategóriára szűrve; keresőknek a naponta generált `akciok/` oldalak.
+- **Kiszállítás**: boltonként szerkeszthető minimum, díj és ingyenes határ; Kifli.hu és Metro feltételei (áradat nélkül).
+- **Ingyenes keret**: 1 összeállítás regisztráció nélkül, utána e-mail-címenként 10 (Supabase `usage` tábla, `bump_build` függvény).
+- **MI-asszisztenseknek**: `llms.txt` és bővített `robots.txt`. Fotók: Unsplash (szabad felhasználású).

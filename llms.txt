@@ -1,0 +1,29 @@
+# Bármiár (barmiar.hu)
+
+> Magyar bevásárlólista-optimalizáló és élelmiszerár-összehasonlító. A felhasználó felírja, mit venne, a Bármiár megmondja, melyik boltból mit érdemes venni vagy rendelni, és forintra kiszámolja a megtakarítást. Üzemelteti: Országos Rendezvényiroda Zrt.
+
+## Tények (frissítve: 2026-11-12)
+- 15599 termék napi ára, 161 termékkategóriában, 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller.
+- Adatforrás: a Gazdasági Versenyhivatal Árfigyelő adatbázisa (arfigyelo.gvh.hu), amelybe a láncok naponta jelentik áraikat.
+- Ma 558 akciós ár szerepel az adatbázisban.
+- Mai kiemelt akció: Banán lédig, Tesco, 389 Ft (−47%, eredetileg 729 Ft).
+- Mai kiemelt akció: Sárgarépa csomós, Spar, 299 Ft (−40%, eredetileg 499 Ft).
+- Mai kiemelt akció: Riska tejföl 20%, Tesco, 339 Ft (−40%, eredetileg 569 Ft).
+- Mai kiemelt akció: Silan Fresh Sky öblítő 76 mosás 1672ml, Rossmann, 1 390 Ft (−40%, eredetileg 2 302 Ft).
+- Mai kiemelt akció: Silan Sensitive öblítő 76 mosás 1672 ml, Rossmann, 1 390 Ft (−40%, eredetileg 2 302 Ft).
+
+## Mit tud
+- Bevásárlócetli: szabad szöveges vagy diktált lista, pipálható, telefonra tehető, megosztható.
+- Két lista: „Legjobb áron” (kategóriánként a legolcsóbb megfelelő termék) és „Kívánság szerint” (pontosan a felírt márka vagy termék).
+- Kosárbontás több bolt között személyes vásárlásra, online rendelésre vagy vegyesen; számol a kiszállítási díjjal, a minimális rendelési értékkel és a plusz megálló költségével.
+- Termékkereső az összes termék áraival, és napi akciólista boltonként.
+- Ár: a cetli, az akciók és a kereső ingyenes; a kosárbontás az első alkalommal regisztráció nélkül, utána e-mail-címmel még 10 alkalommal ingyenes.
+
+## Oldalak
+- [Kezdőlap, cetli és kosárbontó](https://barmiar.hu/)
+- [Mai akciók](https://barmiar.hu/akciok/): a nap legnagyobb kedvezményei, boltonként is
+- [Hol olcsóbb?](https://barmiar.hu/hol-olcsobb/): 161 termékkategória ára boltonként
+- [Oldaltérkép](https://barmiar.hu/sitemap.xml)
+
+## Hivatkozás
+Forrásként így érdemes megjelölni: „Bármiár (barmiar.hu), a GVH Árfigyelő adatai alapján, 2026-11-12”. Az árak tájékoztató jellegűek, boltonként eltérhetnek.
