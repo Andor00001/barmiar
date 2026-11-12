@@ -163,13 +163,17 @@ let oldCats = [], oldRows = [];
 try { oldCats = JSON.parse(await readFile('data/prices.json', 'utf8')).cats.filter(c => c.x); oldRows = JSON.parse(await readFile('data/products.json', 'utf8')).p.filter(r => r[1] >= 9000); } catch { /* első futás */ }
 // heti szórólap-ajánlatok (Lidl, Penny, Aldi honlapja): szintén naponta egyszer
 let fly = { updated: '', items: [] };
-try { fly = JSON.parse(await readFile('data/flyers.json', 'utf8')); } catch { /* első futás */ }
+try { fly = JSON.parse(await readFile('data/flyers.json', 'utf8')); if (fly.auto) fly.items = fly.auto; } catch { /* első futás */ }
+// kézzel (heti feladatban) kiolvasott szórólap-árak, pl. Tesco, Spar: [bolt, név, mennyiség, egység, ár, régi ár, érvényesség+forrás, lejárat (ÉÉÉÉ-HH-NN)]
+let manual = [];
+try { manual = (JSON.parse(await readFile('data/flyers_manual.json', 'utf8')).items || []).filter(x => Array.isArray(x) && CHAIN_NAMES[x[0]] && x[4] > 0 && (!x[7] || x[7] >= today)); } catch { /* nincs ilyen fájl */ }
 if (process.env.FORCE_EXTRA || fly.updated !== today) {
   try { const f = await fetchFlyers(); console.log(`Szórólap: ${f.items.length} ajánlat. ${f.log.join(' | ')}`);
-    if (f.items.length) { fly = { updated: today, items: f.items.map(x => [x.s, x.n, x.k, x.u, x.p, x.w, x.v]) }; await writeFile('data/flyers.json', JSON.stringify(fly)); }
+    if (f.items.length) fly = { updated: today, items: f.items.map(x => [x.s, x.n, x.k, x.u, x.p, x.w, x.v]) };
   } catch (e) { console.log('Szórólap kihagyva: ' + e.message); }
 }
-const flyers = fly.items.map(x => ({ s: x[0], n: x[1], k: x[2], u: x[3], p: x[4], w: x[5] }));
+await writeFile('data/flyers.json', JSON.stringify({ updated: fly.updated, auto: fly.items, items: fly.items.concat(manual.map(x => x.slice(0, 7))) }));
+const flyers = fly.items.concat(manual).map(x => ({ s: x[0], n: x[1], k: x[2], u: x[3], p: x[4], w: x[5] }));
 let extra = { cats: [], rows: [], log: [] };
 if (!process.env.FORCE_EXTRA && oldCats.length && oldCats.every(c => c.x === today)) extra = { cats: oldCats, rows: oldRows, log: ['ma már lekérdezve, a reggeli adat marad'] };
 else {
