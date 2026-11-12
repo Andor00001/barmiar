@@ -2,6 +2,7 @@
 // Futtatás: node scripts/update.mjs   (Node 20+, külső csomag nélkül)
 // Kimenet: data/prices.json, data/products.json, data/history.json, hol-olcsobb/**, akciok/**, llms.txt, robots.txt, sitemap.xml
 import { writeFile, readFile, mkdir, rm } from 'node:fs/promises';
+import { fetchExtra } from './extra.mjs';
 
 const API = 'https://arfigyelo.gvh.hu/api';
 const SITE = (process.env.SITE_URL || 'https://barmiar.hu/').replace(/\/?$/, '/');
@@ -12,7 +13,7 @@ const CHAINS = {
   '555f7e7c-8229-4f4f-ba60-450925a5b308': 'dm', '41e81400-3e3d-47b4-84f7-7dce01cc9b43': 'rossmann',
   'e313905a-b57e-4016-b4d2-1d1f45e53157': 'muller',
 };
-const CHAIN_NAMES = { aldi: 'Aldi', auchan: 'Auchan', lidl: 'Lidl', penny: 'Penny', spar: 'Spar', tesco: 'Tesco', dm: 'dm', rossmann: 'Rossmann', muller: 'Müller' };
+const CHAIN_NAMES = { kifli: 'Kifli.hu', aldi: 'Aldi', auchan: 'Auchan', lidl: 'Lidl', penny: 'Penny', spar: 'Spar', tesco: 'Tesco', dm: 'dm', rossmann: 'Rossmann', muller: 'Müller' };
 // kategória-azonosító: [rövid név, keresőszavak ékezet nélkül]
 const CAT = {
   1: ['Friss tej 2,8%', 'tej,friss tej,esl tej'], 2: ['Friss tej 1,5%', 'tej 1.5,zsirszegeny tej,felzsiros tej'],
@@ -87,7 +88,7 @@ const leaves = [];
 
 const cats = []; const slugs = new Set(); let productCount = 0;
 // az összes termék a termékkeresőhöz és a „Kívánság szerint” listához: [név, kategória, kiszerelés, árak láncsorrendben(, eltérő egység)]
-const ORDER = ['lidl', 'aldi', 'penny', 'tesco', 'auchan', 'spar', 'dm', 'rossmann', 'muller'];
+const ORDER = ['lidl', 'aldi', 'penny', 'tesco', 'auchan', 'spar', 'dm', 'rossmann', 'muller', 'kifli'];
 const allProducts = [];
 for (const leaf of leaves) {
   let products = [], off = 0, total = Infinity;
@@ -157,7 +158,21 @@ for (const leaf of leaves) {
 if (cats.length < 100) throw new Error('Túl kevés kategória érkezett (' + cats.length + '), nem írom felül az adatokat.');
 const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Budapest' });
 await mkdir('data', { recursive: true });
-await writeFile('data/prices.json', JSON.stringify({ updated: today, source: 'GVH Árfigyelő (arfigyelo.gvh.hu)', products: productCount, chains: CHAIN_NAMES, cats }));
+// ---- kiegészítő forrás (sör, csokoládé, üdítő): naponta egyszer kérdezzük, a nap többi futása a reggeli adatot viszi tovább ----
+let oldCats = [], oldRows = [];
+try { oldCats = JSON.parse(await readFile('data/prices.json', 'utf8')).cats.filter(c => c.x); oldRows = JSON.parse(await readFile('data/products.json', 'utf8')).p.filter(r => r[1] >= 9000); } catch { /* első futás */ }
+let extra = { cats: [], rows: [], log: [] };
+if (!process.env.FORCE_EXTRA && oldCats.length && oldCats.every(c => c.x === today)) extra = { cats: oldCats, rows: oldRows, log: ['ma már lekérdezve, a reggeli adat marad'] };
+else {
+  try { extra = await fetchExtra({ ORDER, norm, slugify, today }); } catch (e) { extra.log.push('hiba: ' + e.message); }
+  // ami ma nem jött meg, azt legfeljebb 3 napig a legutóbbi ismert árral mutatjuk
+  const limit = new Date(Date.now() - 3 * 864e5).toLocaleDateString('sv-SE', { timeZone: 'Europe/Budapest' });
+  for (const c of oldCats) if (!extra.cats.some(x => x.id === c.id) && c.x >= limit) { extra.cats.push(c); extra.rows.push(...oldRows.filter(r => r[1] === c.id)); }
+}
+for (const c of extra.cats) { while (slugs.has(c.s)) c.s += '-' + c.id; slugs.add(c.s); cats.push(c); }
+allProducts.push(...extra.rows);
+console.log(`Kiegészítő forrás: ${extra.cats.length} kategória, ${extra.rows.length} termék. ${extra.log.join(' | ')}`);
+await writeFile('data/prices.json', JSON.stringify({ updated: today, source: 'GVH Árfigyelő (arfigyelo.gvh.hu); sör, üdítő, csokoládé: Kifli.hu és Auchan webáruház', products: productCount + extra.rows.length, chains: CHAIN_NAMES, cats }));
 if (allProducts.length > 5000) await writeFile('data/products.json', JSON.stringify({ updated: today, chains: ORDER, p: allProducts }));
 
 // napi legjobb egységár kategóriánként – ebből épül az ártrend
@@ -181,7 +196,7 @@ const head = (title, desc, path, depth, extra = '') => `<!DOCTYPE html>
 <meta property="og:type" content="website"><meta property="og:url" content="${SITE}${path}"><meta property="og:locale" content="hu_HU">
 <link rel="icon" href="${'../'.repeat(depth)}icon.svg" type="image/svg+xml"><link rel="stylesheet" href="${'../'.repeat(depth)}pages.css">${extra}</head><body>
 <header class="top"><a class="logo" href="${'../'.repeat(depth)}">bármiár<i></i></a><a class="btn" href="${'../'.repeat(depth)}">Kosárbontó megnyitása</a></header><main>`;
-const foot = depth => `</main><footer><p>Árak forrása: GVH Árfigyelő (arfigyelo.gvh.hu), frissítve: ${today}. Az árak tájékoztató jellegűek, boltonként eltérhetnek.</p>
+const foot = depth => `</main><footer><p>Árak forrása: GVH Árfigyelő (arfigyelo.gvh.hu); sör, üdítő, csokoládé: Kifli.hu és Auchan webáruház. Frissítve: ${today}. Az árak tájékoztató jellegűek, boltonként eltérhetnek.</p>
 <p><a href="${'../'.repeat(depth)}akciok/">Mai akciók</a> · <a href="${'../'.repeat(depth)}hol-olcsobb/">Összes termék</a> · <a href="${'../'.repeat(depth)}adatkezeles.html">Adatkezelés</a> · A Bármiár független szolgáltatás, nem áll kapcsolatban az áruházláncokkal.</p></footer></body></html>`;
 await rm('hol-olcsobb', { recursive: true, force: true });
 const urls = ['', 'hol-olcsobb/'];
@@ -205,14 +220,14 @@ ${rows.map((r, i) => `<tr${i ? '' : ' class="win"'}><td><b>${CHAIN_NAMES[r.ch]}<
 </tbody></table></div>
 <p class="cta"><a class="btn" href="../../?l=${c.id}">Cetlire teszem, és kiszámolom a teljes bevásárlást</a></p>
 <h2>Miért érdemes a teljes listát nézni?</h2>
-<p>Egy termék ritkán dönti el, hova érdemes menni. A Bármiár a teljes bevásárlólistádat nézi egyszerre: megmondja, melyik boltból mit vegyél vagy rendelj, és forintra kiszámolja, mennyit spórolsz vele. A hivatalos adatbázis kategóriánként a láncok legolcsóbb, jellemző kiszerelésű termékét mutatja (${c.f}).</p>
+<p>Egy termék ritkán dönti el, hova érdemes menni. A Bármiár a teljes bevásárlólistádat nézi egyszerre: megmondja, melyik boltból mit vegyél vagy rendelj, és forintra kiszámolja, mennyit spórolsz vele. ${c.x ? `Ennek a termékkörnek az árai a Kifli.hu és az Auchan saját webáruházából származnak (frissítve: ${c.x}); az Auchannál a kategória kiemelt termékeit nézzük.` : `A hivatalos adatbázis kategóriánként a láncok legolcsóbb, jellemző kiszerelésű termékét mutatja (${c.f}).`}</p>
 ${related.length ? `<h2>Hasonló termékek</h2><p class="links">${related.map(x => `<a href="../${x.s}/">${esc(x.n)}</a>`).join(' ')}</p>` : ''}` + foot(2);
   await mkdir(`hol-olcsobb/${c.s}`, { recursive: true });
   await writeFile(`hol-olcsobb/${c.s}/index.html`, html);
   urls.push(`hol-olcsobb/${c.s}/`);
 }
 const groups = [...new Set(cats.map(c => c.g))];
-await writeFile('hol-olcsobb/index.html', head('Hol olcsóbb? Élelmiszer- és drogériaárak boltonként | Bármiár', `${cats.length} termékkategória napi ára 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller.`, 'hol-olcsobb/', 1) + `
+await writeFile('hol-olcsobb/index.html', head('Hol olcsóbb? Élelmiszer- és drogériaárak boltonként | Bármiár', `${cats.length} termékkategória napi ára 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller; sör, üdítő, csokoládé a Kifli.hu-ról is.`, 'hol-olcsobb/', 1) + `
 <h1>Hol olcsóbb? Napi árak boltonként</h1><p class="lead">${cats.length} termékkategória, ${productCount.toLocaleString('hu-HU')} termék ára 9 áruházláncnál. Frissítve: ${today}.</p>
 ${groups.map(g => `<h2>${esc(g)}</h2><p class="links">${cats.filter(c => c.g === g).map(c => `<a href="${c.s}/">${esc(c.n)}</a>`).join(' ')}</p>`).join('\n')}` + foot(1));
 
@@ -232,7 +247,7 @@ const chainLinks = depth => `<p class="links">${ORDER.filter(ch => byChain[ch]).
 const faq = [
   ['Honnan tudjátok, mi akciós ma?', 'Az áruházláncok naponta jelentik áraikat a Gazdasági Versenyhivatal Árfigyelő adatbázisába, az akciós árat külön megjelölve. A Bármiár ebből számolja a kedvezmény mértékét, naponta kétszer frissítve.'],
   ['Melyik boltok akciói szerepelnek?', 'Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann és Müller.'],
-  ['Mennyibe kerül a Bármiár?', 'A cetli, az akciók és a termékkereső ingyenes. A teljes lista bolti szétosztása az első alkalommal regisztráció nélkül, utána egy e-mail-címmel még tíz alkalommal ingyenes.'],
+  ['Mennyibe kerül a Bármiár?', 'A cetli, az akciók és a termékkereső ingyenes. A teljes lista bolti szétosztása az első alkalommal regisztráció nélkül, utána ingyenes regisztrációval korlátlanul használható.'],
   ['Hogyan lesz az akciókból bevásárlóterv?', 'Tedd a termékeket a cetlire, és a Bármiár kiszámolja, melyik boltból mit érdemes venni vagy rendelni, a kiszállítási díjjal és a minimális rendelési értékkel együtt.'],
 ];
 const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
@@ -275,7 +290,7 @@ await writeFile('llms.txt', `# Bármiár (barmiar.hu)
 
 ## Tények (frissítve: ${today})
 - ${productCount} termék napi ára, ${cats.length} termékkategóriában, 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller.
-- Adatforrás: a Gazdasági Versenyhivatal Árfigyelő adatbázisa (arfigyelo.gvh.hu), amelybe a láncok naponta jelentik áraikat.
+- Adatforrás: a Gazdasági Versenyhivatal Árfigyelő adatbázisa (arfigyelo.gvh.hu), amelybe a láncok naponta jelentik áraikat. A sör, az üdítő és a csokoládé ára a Kifli.hu és az Auchan nyilvános webáruházából származik, naponta egyszer frissítve.
 - Ma ${deals.length} akciós ár szerepel az adatbázisban.${deals.slice(0, 5).map(d => `\n- Mai kiemelt akció: ${d.n}, ${CHAIN_NAMES[d.ch]}, ${ft(d.p)} (−${d.pct}%, eredetileg ${ft(d.w)}).`).join('')}
 
 ## Mit tud
@@ -283,7 +298,7 @@ await writeFile('llms.txt', `# Bármiár (barmiar.hu)
 - Két lista: „Legjobb áron” (kategóriánként a legolcsóbb megfelelő termék) és „Kívánság szerint” (pontosan a felírt márka vagy termék).
 - Kosárbontás több bolt között személyes vásárlásra, online rendelésre vagy vegyesen; számol a kiszállítási díjjal, a minimális rendelési értékkel és a plusz megálló költségével.
 - Termékkereső az összes termék áraival, és napi akciólista boltonként.
-- Ár: a cetli, az akciók és a kereső ingyenes; a kosárbontás az első alkalommal regisztráció nélkül, utána e-mail-címmel még 10 alkalommal ingyenes.
+- Ár: a cetli, az akciók és a kereső ingyenes; a kosárbontás az első alkalommal regisztráció nélkül, utána ingyenes regisztrációval korlátlan.
 
 ## Oldalak
 - [Kezdőlap, cetli és kosárbontó](${SITE})

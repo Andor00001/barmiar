@@ -28,3 +28,11 @@ A `signups` és `outbound_clicks` táblák a `barmiar` Supabase-projektben vanna
 - **Kiszállítás**: boltonként szerkeszthető minimum, díj és ingyenes határ; Kifli.hu és Metro feltételei (áradat nélkül).
 - **Ingyenes keret**: 1 összeállítás regisztráció nélkül, utána e-mail-címenként 10 (Supabase `usage` tábla, `bump_build` függvény).
 - **MI-asszisztenseknek**: `llms.txt` és bővített `robots.txt`. Fotók: Unsplash (szabad felhasználású).
+
+## Kiegészítő árforrás (2026-11-12)
+
+- `scripts/extra.mjs`: sör, csokoládé, üdítő (7 termékkör) a Kifli.hu és az Auchan nyilvános webáruházából.
+- Naponta legfeljebb egyszer kérdez, névvel azonosított robotként, kb. 60 kéréssel; ha egy bolt elutasít, aznap leáll. Ami nem jön meg, legfeljebb 3 napig a legutóbbi árral látszik.
+- A Tesco webáruháza robotot nem enged be, a Spar mindent tilt: ezeket nem olvassuk.
+- A számítás valós kiszerelésekkel dolgozik: annyi csomag ára, amennyi a kért mennyiséghez kell.
+- Egyelőre minden ingyenes; az első összeállítás után csak ingyenes e-mailes regisztráció kell.
