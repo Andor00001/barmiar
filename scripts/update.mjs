@@ -222,6 +222,15 @@ for (const c of cats) {
     { '@type': 'ListItem', position: 1, name: 'Bármiár', item: SITE }, { '@type': 'ListItem', position: 2, name: 'Hol olcsóbb?', item: SITE + 'hol-olcsobb/' },
     { '@type': 'ListItem', position: 3, name: c.n, item: `${SITE}hol-olcsobb/${c.s}/` }] };
   const related = cats.filter(x => x.g === c.g && x.id !== c.id).slice(0, 12);
+  // ártrend: a legjobb egységár alakulása (3 naptól kis grafikonnal)
+  const hs = (hist.min[c.id] || []).filter(v => v != null), hl = hs[hs.length - 1], hp = hs[hs.length - 2];
+  let trend = '';
+  if (hs.length >= 2 && hp > 0) {
+    const ch = hl / hp - 1;
+    trend = `<p class="lead">Ártrend: a legjobb egységár az előző naphoz képest ${Math.abs(ch) < 0.005 ? 'nem változott' : (ch < 0 ? '<b>csökkent</b> ' : '<b>nőtt</b> ') + Math.abs(Math.round(ch * 100)) + '%-kal'}${hs.length >= 3 ? `, ${hs.length} napja követjük` : ''}.</p>`;
+    if (hs.length >= 3) { const lo = Math.min(...hs), hi = Math.max(...hs), sp = hi - lo || 1; const pts = hs.slice(-60).map((v, i, a) => `${(i / (a.length - 1) * 296 + 2).toFixed(1)},${(52 - (v - lo) / sp * 44).toFixed(1)}`).join(' ');
+      trend += `<svg viewBox="0 0 300 58" width="300" height="58" role="img" aria-label="A legjobb egységár alakulása, legalacsonyabb ${ft(lo)}, legmagasabb ${ft(hi)}" style="max-width:100%;display:block;margin:6px 0 14px"><polyline points="${pts}" fill="none" stroke="#0a66c2" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/></svg>`; }
+  }
   const ld2 = { '@context': 'https://schema.org', '@type': 'Product', name: c.n, category: c.g, description: desc,
     offers: { '@type': 'AggregateOffer', priceCurrency: 'HUF', lowPrice: Math.min(...rows.map(r => r.e.p)), highPrice: Math.max(...rows.map(r => r.e.p)), offerCount: rows.length } };
   const html = head(title, desc, `hol-olcsobb/${c.s}/`, 2, `<script type="application/ld+json">${JSON.stringify(ld)}</script><script type="application/ld+json">${JSON.stringify(ld2)}</script>`) + `
@@ -234,6 +243,7 @@ ${rows.map((r, i) => `<tr${i ? '' : ' class="win"'}><td><b>${CHAIN_NAMES[r.ch]}<
 <p class="cta"><a class="btn" href="../../?l=${c.id}">Cetlire teszem, és kiszámolom a teljes bevásárlást</a></p>
 <h2>Miért érdemes a teljes listát nézni?</h2>
 <p>Egy termék ritkán dönti el, hova érdemes menni. A Bármiár a teljes bevásárlólistádat nézi egyszerre: megmondja, melyik boltból mit vegyél vagy rendelj, és forintra kiszámolja, mennyit spórolsz vele. ${c.x ? `Ennek a termékkörnek az árai a Kifli.hu és az Auchan saját webáruházából származnak (frissítve: ${c.x}); az Auchannál a kategória kiemelt termékeit nézzük.` : `A hivatalos adatbázis kategóriánként a láncok legolcsóbb, jellemző kiszerelésű termékét mutatja (${c.f}).`}</p>
+${trend}
 ${related.length ? `<h2>Hasonló termékek</h2><p class="links">${related.map(x => `<a href="../${x.s}/">${esc(x.n)}</a>`).join(' ')}</p>` : ''}` + foot(2);
   await mkdir(`hol-olcsobb/${c.s}`, { recursive: true });
   await writeFile(`hol-olcsobb/${c.s}/index.html`, html);
@@ -295,6 +305,42 @@ ${dealTable(list.slice(0, 80))}
 <h2>Más boltok akciói</h2>${chainLinks(2)}` + foot(2));
     urls.push(`akciok/${ch}/`);
   }
+}
+// ---- napi önellenőrzés: melyik forrásból mennyi adat jött, és mi gyanús ----
+{
+  const col = ch => ORDER.indexOf(ch), xr = ch => extra.rows.filter(r => r[3][col(ch)]).length, fl = ch => fly.items.filter(x => x[0] === ch).length, mn = ch => manual.filter(x => x[0] === ch).length;
+  const st = (n, fresh = true) => (n > 0 ? (fresh ? 'rendben' : 'korábbi adat') : 'ma nem jött adat');
+  const xFresh = extra.cats.length > 0 && extra.cats.every(c => c.x === today);
+  const sources = [
+    ['GVH Árfigyelő (9 lánc, alapélelmiszer és háztartás)', productCount, productCount > 10000 ? 'rendben' : 'kevés adat'],
+    ['Kifli.hu webáruház (sör, üdítő, csokoládé)', xr('kifli'), st(xr('kifli'), xFresh)],
+    ['Auchan webáruház (sör, üdítő, csokoládé)', xr('auchan'), st(xr('auchan'), xFresh)],
+    ['Lidl heti ajánlatok', fl('lidl'), st(fl('lidl'), fly.updated === today)],
+    ['Penny heti ajánlatok', fl('penny'), st(fl('penny'), fly.updated === today)],
+    ['Aldi heti ajánlatok', fl('aldi'), st(fl('aldi'), fly.updated === today)],
+    ['Tesco akciós újság (heti kézi kiolvasás)', mn('tesco'), mn('tesco') ? 'rendben' : 'még nincs feltöltve'],
+    ['Spar akciós újság (heti kézi kiolvasás)', mn('spar'), mn('spar') ? 'rendben' : 'még nincs feltöltve'],
+  ];
+  // gyanús: egy termékkörön belül a láncok legjobb egységára között több mint ötszörös a különbség
+  const flags = [];
+  for (const c of cats) { const es = Object.entries(c.o); if (es.length < 2) continue; es.sort((a, b) => a[1].u - b[1].u); const lo = es[0], hi = es[es.length - 1];
+    if (hi[1].u > lo[1].u * 5) flags.push([c.n, CHAIN_NAMES[lo[0]], lo[1].n, lo[1].u, CHAIN_NAMES[hi[0]], hi[1].n, hi[1].u, unitLabel(c.u)]); }
+  await writeFile('data/check.json', JSON.stringify({ date: today, sources, flags, notes: extra.log }));
+  await mkdir('ellenorzes', { recursive: true });
+  await writeFile('ellenorzes/index.html', head('Napi adatellenőrzés | Bármiár', 'A Bármiár napi adatellenőrzése: melyik forrásból mennyi ár érkezett, és mely árak gyanúsak.', 'ellenorzes/', 1, '<meta name="robots" content="noindex">') + `
+<nav class="crumb"><a href="../">Bármiár</a> › Napi adatellenőrzés</nav>
+<h1>Napi adatellenőrzés</h1>
+<p class="lead">Utolsó futás: <b>${today}</b>. Itt látszik, melyik forrásból mennyi ár érkezett, és mit érdemes kézzel megnézni.</p>
+<h2>Források</h2>
+<div class="scroll"><table><thead><tr><th>Forrás</th><th class="r">Tétel</th><th>Állapot</th></tr></thead><tbody>
+${sources.map(x => `<tr><td>${esc(x[0])}</td><td class="r">${x[1]}</td><td>${x[2] === 'rendben' ? '<b class="win">rendben</b>' : `<span class="pct">${esc(x[2])}</span>`}</td></tr>`).join('\n')}
+</tbody></table></div>
+<h2>Gyanús árkülönbségek (${flags.length})</h2>
+${flags.length ? `<p>Ezeknél a termékköröknél a legolcsóbb és a legdrágább lánc egységára között több mint ötszörös a különbség. Lehet valódi, de lehet elírás vagy eltérő kiszerelés.</p><div class="scroll"><table><thead><tr><th>Termékkör</th><th>Legolcsóbb</th><th>Legdrágább</th></tr></thead><tbody>
+${flags.map(f => `<tr><td><b>${esc(f[0])}</b></td><td>${f[1]}: ${esc(f[2])} <span class="m">${ft(f[3])}/${f[7]}</span></td><td>${f[4]}: ${esc(f[5])} <span class="m">${ft(f[6])}/${f[7]}</span></td></tr>`).join('\n')}
+</tbody></table></div>` : '<p>Ma nincs ötszörösnél nagyobb eltérés egyik termékkörben sem.</p>'}
+${extra.log.length ? `<h2>Megjegyzések</h2><p>${extra.log.map(esc).join('<br>')}</p>` : ''}` + foot(1));
+  console.log(`Önellenőrzés: ${flags.length} gyanús termékkör; ${sources.filter(x => x[2] !== 'rendben').map(x => x[0] + ': ' + x[2]).join(' | ') || 'minden forrás rendben'}`);
 }
 // llms.txt: rövid, tényszerű leírás MI-asszisztenseknek (naponta a friss számokkal)
 await writeFile('llms.txt', `# Bármiár (barmiar.hu)
