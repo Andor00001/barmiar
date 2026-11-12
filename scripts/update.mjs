@@ -25,9 +25,9 @@ const CAT = {
   114: ['Mozzarella', 'mozzarella'], 115: ['Ömlesztett sajt', 'omlesztett sajt,omlesztett,kenheto sajt'],
   11: ['Margarin', 'margarin'], 12: ['Vaj', 'vaj,teavaj'], 13: ['Vajkrém', 'vajkrem'], 63: ['Sütőmargarin', 'sutomargarin'],
   14: ['Tojás', 'tojas'], 81: ['Főzőtejszín', 'fozotejszin,tejszin'], 82: ['Habtejszín', 'habtejszin'], 116: ['Túródesszert', 'turodesszert,turo rudi,turorudi'],
-  15: ['Sertéscomb', 'sertescomb'], 16: ['Sertéskaraj', 'karaj,serteskaraj,sertes'], 85: ['Darált sertéshús', 'daralt hus,daralt,daralthus'],
+  15: ['Sertéscomb', 'sertescomb'], 16: ['Sertéskaraj', 'karaj,serteskaraj,sertes'], 85: ['Darált sertéshús', 'daralt hus,daralt,daralthus,daralt sertes'],
   118: ['Sertésoldalas', 'oldalas'], 119: ['Sertéstarja', 'tarja'], 17: ['Egész csirke', 'egesz csirke,tyuk'],
-  18: ['Csirkemellfilé', 'csirkemell,csirkemellfile,csirke'], 19: ['Csirkecomb', 'csirkecomb'], 20: ['Csirkeszárny', 'csirkeszarny'],
+  18: ['Csirkemellfilé', 'csirkemell,csirkemellfile,csirke'], 19: ['Csirkecomb', 'csirkecomb,csirke comb'], 20: ['Csirkeszárny', 'csirkeszarny'],
   21: ['Pulykamellfilé', 'pulykamell,pulyka'], 64: ['Marhalábszár', 'marhalabszar,marha,marhahus'], 86: ['Darált marhahús', 'daralt marha,daralt marhahus'],
   87: ['Fehérpecsenye', 'feherpecsenye'], 22: ['Sertészsír', 'zsir,serteszsir'], 23: ['Virsli', 'virsli'], 24: ['Párizsi', 'parizsi'],
   25: ['Téliszalámi', 'szalami,teliszalami'], 26: ['Pulykamell sonka', 'pulykasonka,pulykamell sonka'], 27: ['Sonka', 'sonka,felvagott'],
@@ -41,9 +41,9 @@ const CAT = {
   98: ['Fagyasztott brokkoli', 'fagyasztott brokkoli'], 46: ['Fehér kenyér', 'kenyer,feher kenyer'], 47: ['Félbarna kenyér', 'felbarna kenyer,felbarna,barna kenyer'],
   48: ['Teljes kiőrlésű kenyér', 'teljes kiorlesu kenyer,teljes kiorlesu'], 49: ['Rozsos kenyér', 'rozskenyer,rozsos kenyer'], 94: ['Zsemle', 'zsemle'],
   50: ['Száraztészta', 'teszta,szarazteszta,spagetti'], 58: ['Háztartási keksz', 'keksz'], 51: ['Napraforgó étolaj', 'olaj,etolaj,napraforgo'],
-  52: ['Finomliszt', 'liszt,finomliszt'], 53: ['Rétesliszt', 'retesliszt'], 54: ['Kristálycukor', 'cukor,kristalycukor'], 55: ['Porcukor', 'porcukor'],
+  52: ['Finomliszt', 'liszt,finomliszt'], 53: ['Rétesliszt', 'retesliszt'], 54: ['Kristálycukor', 'cukor,cukr,kristalycukor'], 55: ['Porcukor', 'porcukor'],
   120: ['Extra szűz olívaolaj', 'olivaolaj,oliva'], 121: ['Olívapogácsa-olaj', 'olivapogacsa'], 56: ['Csemegekukorica-konzerv', 'kukorica,kukoricakonzerv'],
-  57: ['Csemegeuborka', 'csemegeuborka,savanyu uborka'], 61: ['Narancslé', 'narancsle,gyumolcsle'], 62: ['Almalé', 'almale'], 67: ['Ásványvíz', 'viz,asvanyviz'],
+  57: ['Csemegeuborka', 'csemegeuborka,savanyu uborka'], 61: ['Narancslé', 'narancsle,gyumolcsle'], 62: ['Almalé', 'almale'], 67: ['Ásványvíz', 'viz,asvanyviz,asvany viz'],
   95: ['Rizs', 'rizs'], 96: ['Lencse', 'lencse'], 100: ['Földimogyoró', 'mogyoro,foldimogyoro'], 101: ['Őrölt kávé', 'kave,orolt kave'], 102: ['Tea', 'tea'],
   122: ['Szemes kávé', 'szemes kave'], 103: ['Kakaópor', 'kakao,kakaopor'], 104: ['Kakaópor (20–22%)', 'holland kakao'],
   68: ['Növényi ital', 'novenyi ital,zabital,zabtej,novenyi tej,mandulatej'], 69: ['Laktózmentes tej', 'laktozmentes tej'],
@@ -131,7 +131,11 @@ for (const leaf of leaves) {
   if (!Object.keys(o).length) continue;
   const meta = CAT[leaf.id] || [leaf.name, norm(leaf.name)];
   let slug = slugify(meta[0]); while (slugs.has(slug)) slug += '-' + leaf.id; slugs.add(slug);
-  cats.push({ id: leaf.id, n: meta[0], f: leaf.name, g: leaf.group, s: slug, u: unit, r: ref, k: meta[1].split(','), c: products.length, o });
+  // a terméknevek gyakori szavai: ebből talál az oldal kapcsolódó termékkört ahhoz, amire nincs pontos ár
+  const wc = {};
+  for (const p of products) for (const w of new Set(norm(p.name).split(' '))) if (w.length >= 4 && !/\d/.test(w)) wc[w] = (wc[w] || 0) + 1;
+  const words = Object.entries(wc).filter(([, n]) => n >= 2 || products.length < 12).sort((a, b) => b[1] - a[1]).slice(0, 50).map(([w]) => w);
+  cats.push({ id: leaf.id, n: meta[0], f: leaf.name, g: leaf.group, s: slug, u: unit, r: ref, k: meta[1].split(','), c: products.length, w: words, o });
 }
 if (cats.length < 100) throw new Error('Túl kevés kategória érkezett (' + cats.length + '), nem írom felül az adatokat.');
 const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Budapest' });

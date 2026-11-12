@@ -109,7 +109,10 @@ input:focus,select:focus{border-color:var(--blue);outline:none}
 .btn.big{padding:15px 26px;font-size:17px}
 .chip{background:var(--card);color:var(--ink);border:1px solid var(--line);border-radius:999px;padding:8px 15px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;gap:7px;text-decoration:none}
 .chip:hover{border-color:var(--blue)}
-.chip[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--sky);color:var(--ink);border-color:var(--blue)}
+.chip[aria-pressed="false"]{color:var(--muted)}
+.chip.add{padding:5px 12px;font-size:13.5px;border-color:var(--blue);color:var(--blue)}
+.alts{margin-top:7px;gap:6px}
 .chip[disabled]{opacity:.4;cursor:not-allowed;border-style:dashed}
 .dot{width:10px;height:10px;border-radius:50%;flex:none;border:1px solid rgba(128,128,128,.4)}
 .seg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;background:var(--soft);border-radius:12px;padding:5px}
@@ -388,30 +391,65 @@ function setData(d){DATA=d;CATS=d.cats;C={};CATS.forEach(function(c){C[c.id]=c})
 
 /* ---------- értelmező ---------- */
 function norm(s){return String(s).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z0-9.\s-]/g,' ').replace(/\s+/g,' ').trim()}
-function findProduct(t){var words=t.split(' '),best=null,bs=0;
-  CATS.forEach(function(p){p.k.forEach(function(k){var sc=0;
-    if(k.indexOf(' ')>=0||k.indexOf('-')>=0){if(t.indexOf(k)>=0)sc=k.length*2+1}
-    else words.forEach(function(w){var v=0;if(w===k)v=k.length*2+1;else if(k.length>=3&&w.indexOf(k)===0)v=k.length*2-(w.length-k.length)*.1;else if(k.length<3&&w===k+'t')v=k.length*2;if(v>sc)sc=v});
+var UNITS={x:1,db:1,darab:1,kg:1,kilo:1,dkg:1,deka:1,g:1,gramm:1,l:1,liter:1,dl:1,ml:1,csomag:1,cs:1,doboz:1,uveg:1,tekercs:1,zacsko:1,szal:1,fej:1};
+var STOP={friss:1,bio:1,sos:1,edes:1,nagy:1,kis:1,olcso:1,hazai:1,magyar:1,finom:1,egy:1,ket:1,ketto:1,harom:1,par:1,nehany:1,meg:1,es:1,kell:1,kene:1,valami:1,vagy:1,a:1,az:1,is:1,sok:1,keves:1,normal:1,sima:1,natur:1,os:1,fele:1};
+var SUF={t:1,k:1,et:1,at:1,ot:1,ek:1,ak:1,ok:1,es:1,os:1,as:1,bol:1,hoz:1,bal:1,ben:1,val:1,vel:1,kat:1,ket:1,okat:1,eket:1,akat:1};
+var ALT={csoki:[103,116],tejcsoki:[103,116],csokolade:[103,116],etcsoki:[103,104],pizza:[114,27,52],beigli:[52,55,12],bejgli:[52,55,12],sutemeny:[58,52,54],suti:[58],torta:[52,54,14],udito:[61,62,67],kola:[67,61],szorp:[61,62],le:[61,62],chips:[100,58],ropi:[100,58],nasi:[100,58],muzli:[7,84],reggeli:[46,12,14],felvagott:[27,24,26],hus:[18,16,85],hal:[93,91],gyumolcs:[28,31,33],zoldseg:[41,36,34],salata:[38,34,43],leves:[36,37,40],tisztitoszer:[137,136],pekaru:[94,46],kremsajt:[115],pizzasajt:[114,10],fozelek:[59,41],palacsinta:[52,14,1],rantotta:[14,12],szendvics:[46,27,12],grill:[118,119,20],babakaja:[123,124],italpor:[103]};
+function lev(a,b){var m=a.length,n=b.length,d=[],i,j;for(i=0;i<=m;i++)d[i]=[i];for(j=1;j<=n;j++)d[0][j]=j;
+  for(i=1;i<=m;i++)for(j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a.charAt(i-1)===b.charAt(j-1)?0:1));return d[m][n]}
+function matchWord(w){var best=null,bs=0;
+  CATS.forEach(function(p){p.k.forEach(function(k){if(k.indexOf(' ')>=0)return;var sc=0,kl=k.length,wl=w.length;
+    if(w===k)sc=100+kl;
+    else if(kl>=3&&w.indexOf(k)===0&&SUF[w.slice(kl)])sc=60+kl;
+    else if(kl<3&&w===k+'t')sc=60+kl;
+    else if(kl>=4&&wl>kl&&w.slice(-kl)===k)sc=40+kl;
+    else if(wl>=5&&kl>=5&&Math.abs(wl-kl)<=1&&lev(w,k)<=(wl>=9?2:1))sc=20+kl;
     if(sc>bs){bs=sc;best=p}})});
   return best}
+function matchAt(nt,i){for(var L=Math.min(4,nt.length-i);L>=2;L--){var ph=nt.slice(i,i+L).join(' ');
+    for(var c=0;c<CATS.length;c++){var ks=CATS[c].k;for(var j=0;j<ks.length;j++){var k=ks[j];if(k.indexOf(' ')<0)continue;if(ph===k||(ph.indexOf(k)===0&&SUF[ph.slice(k.length)]))return{p:CATS[c],L:L}}}}
+  var p=matchWord(nt[i]);return p?{p:p,L:1}:null}
 function loose(p){return p.u==='kg'&&p.r===1}
 function toPacks(n,unit,p){var W={kg:1,kilo:1,dkg:.01,deka:.01,g:.001,gramm:.001},V={l:1,liter:1,dl:.1,ml:.001},q;
   if(W[unit]&&p.u==='kg')q=n*W[unit]/p.r;
   else if(V[unit]&&p.u==='l')q=n*V[unit]/p.r;
-  else if((!unit||unit==='db'||unit==='darab')&&p.u==='db'&&p.r>=6&&n>=p.r)q=n/p.r;
+  else if((!unit||unit==='db'||unit==='darab'||unit==='x')&&p.u==='db'&&p.r>=6&&n>=p.r)q=n/p.r;
   else q=n;
   q=loose(p)?Math.max(.5,Math.round(q*2)/2):Math.max(1,Math.ceil(q-1e-9));
   return Math.min(30,q)}
-function parseLine(raw){var t=norm(raw);if(!t)return null;var n=null,unit='';
-  t=t.replace(/^fel (kilo|kg)\b/,'0.5 kg').replace(/^fel (liter|l)\b/,'0.5 l');
-  var m=t.match(/^(\d+(?:\.\d+)?)\s*(x|db|darab|kg|kilo|dkg|deka|gramm|g|liter|l|dl|ml|csomag|cs|doboz|uveg|tekercs|zacsko)?\.?\s+(.+)$/);
-  if(m){n=parseFloat(m[1]);unit=m[2]||'';t=m[3]}
-  else{var m2=t.match(/^(.+?)\s+(\d+(?:\.\d+)?)\s*(x|db|kg|dkg|g|l|dl|ml)?$/);if(m2&&!CATS.some(function(c){return c.k.some(function(k){return /\d/.test(k)&&t.indexOf(k)>=0})})){t=m2[1];n=parseFloat(m2[2]);unit=m2[3]||''}}
-  var p=findProduct(t);if(!p)return{miss:String(raw).trim()};
-  return{pid:p.id,q:n==null?1:toPacks(n,unit,p)}}
-function parseText(txt){var out=[],miss=[];
-  String(txt).replace(/(\d),(\d)/g,'$1.$2').split(/[\n,;]+|\s+és\s+|\s+meg\s+/i).forEach(function(part){var r=parseLine(part);if(!r)return;if(r.miss)miss.push(r.miss);else{var ex=out.filter(function(o){return o.pid===r.pid})[0];if(ex)ex.q=Math.min(30,ex.q+r.q);else out.push(r)}});
-  return{items:out,miss:miss}}
+// Egy vesszők közti rész feldolgozása. Több terméket is kiolvas belőle, akkor is, ha csak szóköz van köztük.
+function parseSegment(seg,single){var raw=String(seg).replace(/^\s*f[ée]l\s+(kil[óo]|kg)\b/i,'0.5 kg').replace(/^\s*f[ée]l\s+(liter|l)\b/i,'0.5 l').match(/[0-9]+(?:\.[0-9]+)?|[^\s0-9]+/g)||[];
+  var rt=[],nt=[];raw.forEach(function(t){var n=/^[0-9]/.test(t)?t:norm(t).replace(/^-+|-+$/g,'');if(t.charAt(0)==='%')n='%';if(n){rt.push(t);nt.push(n)}});
+  var items=[],unk=[],pend=null,last=null,i=0;
+  while(i<nt.length){var t=nt[i];
+    if(t==='%'){pend=null;i++;continue}
+    if(/^[0-9]/.test(t)){var num=parseFloat(t),unit='',j=i+1;if(j<nt.length&&UNITS[nt[j]]){unit=nt[j];j++}
+      if(j<nt.length&&nt[j]==='%'){i=j+1;continue}
+      if(j>=nt.length&&last&&!last.ex){last.q=toPacks(num,unit,C[last.pid]);last.ex=true}else pend={n:num,u:unit};
+      i=j;continue}
+    if(UNITS[t]&&t.length<=6&&pend&&!pend.u){pend.u=t;i++;continue}
+    var m=matchAt(nt,i);
+    if(m){last={pid:m.p.id,q:pend?toPacks(pend.n,pend.u,m.p):1,ex:!!pend};items.push(last);pend=null;i+=m.L;continue}
+    if(!STOP[t]&&!UNITS[t])unk.push(rt[i].replace(/^[-–.]+|[-–.:!?]+$/g,''));
+    i++}
+  var custom=[];
+  if(!items.length){var whole=String(seg).replace(/\s+/g,' ').trim();if(unk.length&&whole)custom.push(whole.slice(0,40))}
+  else if(single&&nt.length>=3)unk.forEach(function(u){if(u.length>1)custom.push(u.slice(0,40))});
+  return{items:items,custom:custom}}
+function parseText(txt){var out=[],custom=[];
+  var segs=String(txt).replace(/(\d),(\d)/g,'$1.$2').split(/[\n,;]+|\s+és\s+|\s+meg\s+/i).filter(function(x){return x.trim()});
+  segs.forEach(function(seg){var r=parseSegment(seg,segs.length===1);
+    r.items.forEach(function(it){var ex=out.filter(function(o){return o.pid===it.pid})[0];if(ex)ex.q=Math.min(30,ex.q+it.q);else out.push({pid:it.pid,q:it.q})});
+    r.custom.forEach(function(c){if(!custom.some(function(x){return norm(x)===norm(c)}))custom.push(c)})});
+  return{items:out,custom:custom,miss:[]}}
+// Kapcsolódó termékkörök olyan tételhez, amire nincs hivatalos ár.
+function altFor(name,skip){var q=norm(name),words=q.split(' '),sc={};
+  function add(id,v){if(C[id])sc[id]=(sc[id]||0)+v}
+  words.concat([q.replace(/ /g,'')]).forEach(function(w){(ALT[w]||[]).forEach(function(id,i){add(id,9-i)})});
+  CATS.forEach(function(c){words.forEach(function(w){if(w.length<4)return;
+    c.k.forEach(function(k){if(k.indexOf(w)>=0||(k.length>=4&&w.indexOf(k)>=0))add(c.id,5);else if(w.length>=6&&k.length>=6&&lev(w,k)<=2)add(c.id,3)});
+    (c.w||[]).forEach(function(x){if(x.indexOf(w)>=0)add(c.id,2);else if(x.length>=5&&w.indexOf(x)>=0)add(c.id,1)})})});
+  return Object.keys(sc).map(Number).filter(function(id){return!skip||skip.indexOf(id)<0}).sort(function(a,b){return sc[b]-sc[a]}).slice(0,3)}
 
 /* ---------- kosárbontó ---------- */
 function entry(sid,pid,loy){var c=C[pid],e=c&&c.o[sid];if(!e)return null;return loy&&e.l?e.l:e}
@@ -446,7 +484,7 @@ function baseline(res,plan,items,loy){var ids=[];res.chs.forEach(function(c){if(
   items.forEach(function(it){if(missing.indexOf(it.pid)>=0)return;var ps=[];ids.forEach(function(id){var p=price(id,it.pid,loy);if(p!=null)ps.push(p)});
     if(!ps.length)return;var s=0;ps.forEach(function(p){s+=p});res.avg+=Math.round(s/ps.length*it.q);res.max+=Math.round(Math.max.apply(null,ps)*it.q)})}
 
-if(typeof module!=='undefined'&&module.exports){module.exports={CH:CH,setData:setData,parseText:parseText,compute:compute,price:price,entry:entry}}
+if(typeof module!=='undefined'&&module.exports){module.exports={CH:CH,setData:setData,parseText:parseText,compute:compute,price:price,entry:entry,altFor:altFor}}
 if(typeof document==='undefined')return;
 
 /* ---------- beállítások, állapot ---------- */
@@ -455,10 +493,10 @@ var PREVIEW=/claude|anthropic|usercontent/.test(location.hostname)||location.pro
 var LIVE=PREVIEW?'https://barmiar.hu/':location.origin+location.pathname;
 var UTM='utm_source=barmiar.hu&utm_medium=referral&utm_campaign=kosarbonto';
 var KEY='barmiar-v1';
-var DEF={items:[[1,2],[46,1],[14,1],[18,1],[10,1],[41,2],[28,1],[51,1],[101,1],[126,1],[131,1],[143,1],[145,1]],mode:'bolt',stores:CH.map(function(s){return s.id}),loy:false,stop:300,k:0,done:{},dealStore:'',dealCat:'',example:true,miss:[],reg:null,cetliNo:0};
+var DEF={items:[[1,2],[46,1],[14,1],[18,1],[10,1],[41,2],[28,1],[51,1],[101,1],[126,1],[131,1],[143,1],[145,1]],mode:'bolt',stores:CH.map(function(s){return s.id}),loy:false,stop:300,k:0,done:{},dealStore:'',dealCat:'',example:true,miss:[],custom:[],reg:null,cetliNo:0};
 var S,PLAN,lastPaid=null,wText='tej, kenyér, tojás, csirkemell, mosószer, tusfürdő',installEvt=null,wake=null,rec=null;
 function load(saved){S=JSON.parse(JSON.stringify(DEF));if(saved&&typeof saved==='object')for(var k in DEF)if(saved[k]!==undefined)S[k]=saved[k];
-  S.items=(S.items||[]).filter(function(i){return C[i[0]]});S.stores=(S.stores||[]).filter(function(i){return SM[i]})}
+  S.items=(S.items||[]).filter(function(i){return C[i[0]]});S.stores=(S.stores||[]).filter(function(i){return SM[i]});S.custom=(S.custom||[]).filter(function(x){return typeof x==='string'}).slice(0,40);S.miss=[]}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 function stored(){try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}}
 function items(){return S.items.map(function(i){return{pid:i[0],q:i[1]}})}
@@ -481,22 +519,25 @@ function addItems(list){list.forEach(function(r){var ex=S.items.filter(function(
 function out(url){return url+(url.indexOf('?')>=0?'&':'?')+UTM}
 function post(table,row){return fetch(SB+'/rest/v1/'+table,{method:'POST',keepalive:true,headers:{apikey:SBKEY,'Content-Type':'application/json',Prefer:'return=minimal'},body:JSON.stringify(row)})}
 function logClick(chain,k){var P=shown(),n=0,v=0;if(P)P.packs.forEach(function(pk){if(pk.ch.s.id===chain){n=pk.rows.length;v=pk.sub}});try{post('outbound_clicks',{chain:chain,kind:k,items:n,basket_value:v}).catch(function(){})}catch(e){}}
-function shareUrl(){return LIVE+'?l='+S.items.map(function(i){return i[0]+(i[1]!==1?'x'+i[1]:'')}).join(',')}
+function shareUrl(){return LIVE+'?l='+S.items.map(function(i){return i[0]+(i[1]!==1?'x'+i[1]:'')}).join(',')+(S.custom.length?'&x='+encodeURIComponent(S.custom.join('|')):'')}
+function addCustom(list){list.forEach(function(c){if(S.custom.length<40&&!S.custom.some(function(x){return norm(x)===norm(c)}))S.custom.push(c)})}
 function lockHTML(where){return'<div class="lock"><h3>Az első kosárbontásod ingyenes volt</h3><p style="margin:0">A következő cetlikhez regisztrálj. Ingyenes, egy e-mail-cím elég'+(where==='plan'?', és már látod is, melyik boltból mit vegyél.':'.')+'</p><form data-form="reg" class="stack" style="gap:10px"><input type="email" id="reg-email-'+where+'" required placeholder="E-mail-címed" autocomplete="email" aria-label="E-mail-cím"><label class="check"><input type="checkbox" id="reg-ok-'+where+'" required><span>Elfogadom az <a href="adatkezeles.html" target="_blank" rel="noopener">adatkezelési tájékoztatót</a>.</span></label><label class="check"><input type="checkbox" id="reg-news-'+where+'"><span>Kérek heti e-mailt a legjobb akciókról.</span></label><button class="btn big" type="submit">Ingyenes regisztráció</button></form></div>'}
 
 /* ---------- kirajzolás ---------- */
 function renderControls(){
   $('presets').innerHTML=PRESETS.map(function(p,i){return'<button class="chip" type="button" data-act="preset" data-i="'+i+'">'+esc(p[0])+'</button>'}).join('');
   $('list-title').textContent=S.example?'Példa cetli, írd át a sajátodra':'A listán';
-  $('list-count').textContent=S.items.length?S.items.length+' tétel':'';
+  var cnt=S.items.length+S.custom.length;$('list-count').textContent=cnt?cnt+' tétel':'';
   var chs=channels(S.mode,S.stores).map(function(c){return c.s.id});
   $('items').innerHTML=S.items.length?S.items.map(function(i){var p=C[i[0]],best=null,bs=null;
       chs.forEach(function(id){var pr=price(id,p.id,S.loy);if(pr!=null&&(best==null||pr<best)){best=pr;bs=SM[id]}});
       return'<li><div><div class="nm">'+esc(p.n)+' <span class="sub">'+amt(p,i[1])+'</span></div><div class="sub">'+(best!=null?'legjobb ár: <span class="num">'+ft(best)+'</span> / '+num(p.r)+' '+p.u+' · '+esc(bs.n):'a kiválasztott boltokban nincs adat')+'</div></div>'+
         '<div class="step"><button type="button" data-act="dec" data-p="'+p.id+'" aria-label="Kevesebb: '+esc(p.n)+'">−</button><span>'+num(i[1])+'</span><button type="button" data-act="inc" data-p="'+p.id+'" aria-label="Több: '+esc(p.n)+'">+</button></div>'+
         '<button class="x" type="button" data-act="del" data-p="'+p.id+'" aria-label="Törlés: '+esc(p.n)+'">×</button></li>'}).join('')
-    :'<li><span class="hint">Üres a cetli. Írd be fent, mit vennél, vagy válassz egy kész listát.</span></li>';
-  $('unmatched').innerHTML=S.miss.length?'<div class="warn">Erre nincs hivatalos áradat: <b>'+S.miss.map(esc).join(', ')+'</b>. Próbáld egyszerűbb néven, például „sajt” vagy „mosószer”.</div>':'';
+    :(S.custom.length?'':'<li><span class="hint">Üres a cetli. Írd be fent, mit vennél, vagy válassz egy kész listát.</span></li>');
+  var have=S.items.map(function(i){return i[0]});
+  $('items').innerHTML+=S.custom.map(function(c,ci){var al=altFor(c,have);return'<li class="cust"><div><div class="nm">'+esc(c)+' <span class="badge">ár nélkül</span></div><div class="sub">Erre nincs hivatalos ár, de a cetliden marad.</div>'+(al.length?'<div class="row alts"><span class="sub">Kapcsolódó, amire van ár:</span>'+al.map(function(id){return'<button class="chip add" type="button" data-act="alt" data-c="'+ci+'" data-p="'+id+'">+ '+esc(C[id].n)+'</button>'}).join('')+'</div>':'')+'</div><span></span><button class="x" type="button" data-act="cdel" data-c="'+ci+'" aria-label="Törlés: '+esc(c)+'">×</button></li>'}).join('');
+  $('unmatched').innerHTML='';
   var sw=[];S.items.forEach(function(i){(SWAPS[i[0]]||[]).forEach(function(alt){if(!C[alt]||S.items.some(function(x){return x[0]===alt}))return;var a=null,b=null;
     chs.forEach(function(id){var p1=price(id,i[0],S.loy),e2=entry(id,alt,S.loy);if(p1!=null&&(a==null||p1<a))a=p1;if(e2){var p2=e2.u*C[i[0]].r;if(b==null||p2<b)b=p2}});
     if(a!=null&&b!=null&&C[alt].u===C[i[0]].u&&(a-b)*i[1]>=30&&b<a*.92)sw.push({from:i[0],to:alt,save:(a-b)*i[1]})})});
@@ -518,7 +559,8 @@ function packsHTML(P){var h='';
     h+='</div>'});
   return h}
 function renderPlan(){var el=$('plan'),P=shown();
-  if(!S.items.length){el.innerHTML='<div class="receipt"><div class="r-head"><span>A terved</span></div><p style="margin:16px 0 4px">Ide kerül a terved, amint felírtál valamit.</p></div>';return}
+  var custNote=S.custom.length?'<div class="pack"><div class="pack-h"><h3>Ár nélkül a cetlin</h3><span class="badge">bárhol megveheted</span></div><p class="note" style="font-size:15px;color:var(--ink)">'+S.custom.map(esc).join(', ')+'</p><p class="note">Ezekre nincs hivatalos áradat, ezért a megtakarításba nem számoltuk bele. A pipálható cetlin ott lesznek.</p></div>':'';
+  if(!S.items.length){el.innerHTML='<div class="receipt"><div class="r-head"><span>A terved</span></div>'+(S.custom.length?custNote+'<div class="actions"><a class="btn" href="#cetli">Tovább a cetlihez</a></div>':'<p style="margin:16px 0 4px">Ide kerül a terved, amint felírtál valamit.</p>')+'</div>';return}
   if(!P){var mins=PLAN.chs.filter(function(c){return c.k==='online'}).map(function(c){return c.s.on.min});
     el.innerHTML='<div class="receipt"><div class="r-head"><span>A terved</span></div><p style="margin:16px 0 6px;font-weight:700">Ezzel a beállítással nem jön ki terv.</p><p class="hint">'+(PLAN.chs.length?(S.mode==='online'?'A kosarad nem éri el egyik online bolt minimális rendelési értékét sem'+(mins.length?' (a legkisebb '+ft(Math.min.apply(null,mins))+')':'')+'. Tegyél még a cetlire, vagy válts Vegyesen módra.':'A kiválasztott boltokban nincs meg, amit felírtál.'):'Válassz ki legalább egy boltot.')+'</p></div>';return}
   var sv=PLAN.avg-P.paid,pct=PLAN.avg?Math.round(sv/PLAN.avg*100):0,one=PLAN.best[1],n=0,G=gated();P.packs.forEach(function(p){n+=p.rows.length});
@@ -533,7 +575,7 @@ function renderPlan(){var el=$('plan'),P=shown();
     else if(k===1||!prev||prev.missing.length)d='<span class="d">'+esc(b.packs.map(function(p){return p.ch.s.n}).join(', '))+'</span>';
     else{var diff=prev.paid-b.paid;d='<span class="d'+(diff>0?' good':'')+'">'+(diff>0?'+1 hely: −'+ft(diff):'nem olcsóbb')+'</span>'}
     h+='<button type="button" data-act="k" data-k="'+k+'" aria-pressed="'+(b===P)+'"><span class="k">'+k+' hely'+(isRec?'<span class="best">ajánlott</span>':'')+'</span><span class="num">'+ft(b.paid)+'</span><br>'+d+'</button>'}
-  h+='</div>'+packsHTML(P);
+  h+='</div>'+packsHTML(P)+custNote;
   if(P.missing.length)h+='<div class="warn" style="margin:6px 0 10px">A kiválasztott boltokban nincs rá adat: '+P.missing.map(function(m){return esc(C[m.pid].n)}).join(', ')+'.</div>';
   h+='<div class="totals"><div><span>Termékek</span><span class="num">'+ft(P.goods)+'</span></div>';
   if(P.fees)h+='<div><span>Szállítási díjak (becsült)</span><span class="num">'+ft(P.fees)+'</span></div>';
@@ -544,17 +586,19 @@ function renderPlan(){var el=$('plan'),P=shown();
   el.innerHTML=h+'</div>';
   if(lastPaid!==P.paid+':'+P.k){lastPaid=P.paid+':'+P.k;var rc=$('receipt');rc.classList.add('print');rc.addEventListener('animationend',function(){rc.classList.remove('print')},{once:true})}
 }
-function planText(){var P=shown();if(!P)return'';var o=['Bármiár bevásárlóterv'];
+function planText(){var P=shown();if(!P)return S.custom.length?['Bármiár cetli'].concat(S.custom.map(function(c){return'  [ ] '+c}),[shareUrl()]).join('\n'):'';var o=['Bármiár bevásárlóterv'];
   P.packs.forEach(function(pk){o.push('');o.push(pk.ch.s.n.toUpperCase()+' ('+kind(pk.ch)+') · '+ft(pk.sub));pk.rows.forEach(function(r){var p=C[r.it.pid];o.push('  [ ] '+p.n+' '+amt(p,r.it.q)+' – '+r.e.n+' · '+ft(r.sum))});if(pk.fee)o.push('  szállítás kb. '+ft(pk.fee))});
+  if(S.custom.length){o.push('');o.push('ÁR NÉLKÜL (bárhol megveheted)');S.custom.forEach(function(c){o.push('  [ ] '+c)})}
   o.push('');o.push('Fizetendő kb. '+ft(P.paid));if(PLAN.avg>P.paid)o.push('Megtakarítás az átlagárakhoz képest: '+ft(PLAN.avg-P.paid));o.push(shareUrl());return o.join('\n')}
 function renderCetli(){var P=shown(),G=gated();$('cetli-lock').innerHTML=G?lockHTML('cetli'):'';$('cetli-body').hidden=G;if(G)return;
-  if(!P){$('shop').innerHTML='<p class="hint">Előbb állíts össze egy tervet a Kosárbontóban.</p>'}
+  var custCard=S.custom.length?'<div class="panel"><div class="pack-h" style="margin:0"><h3 style="font:800 22px/1 var(--f)">Bárhol megveheted</h3><span class="badge">ár nélkül</span></div><ul class="todo">'+S.custom.map(function(c,ci){var key='x|'+c;return'<li><label><input type="checkbox" id="cx-'+ci+'" data-done="'+esc(key)+'"'+(S.done[key]?' checked':'')+'><span>'+esc(c)+'</span><span></span></label></li>'}).join('')+'</ul></div>':'';
+  if(!P){$('shop').innerHTML=custCard||'<p class="hint">Előbb állíts össze egy tervet a Kosárbontóban.</p>'}
   else $('shop').innerHTML=P.packs.map(function(pk){var s=pk.ch.s,dn=0;pk.rows.forEach(function(r){if(S.done[pk.ch.id+'|'+r.it.pid])dn++});
     return'<div class="panel"><div class="pack-h" style="margin:0">'+dot(s)+'<h3 style="font:700 22px/1 var(--f-display)">'+esc(s.n)+'</h3><span class="badge">'+kind(pk.ch)+'</span><span class="sum num">'+dn+'/'+pk.rows.length+'</span></div><ul class="todo">'+
       pk.rows.map(function(r){var p=C[r.it.pid],key=pk.ch.id+'|'+p.id;
         return'<li><label><input type="checkbox" id="c-'+key.replace(/[:|]/g,'-')+'" data-done="'+key+'"'+(S.done[key]?' checked':'')+'><span>'+esc(p.n)+' <span class="sub">'+amt(p,r.it.q)+'</span><span class="sub" style="display:block">'+esc(r.e.n)+'</span></span><span class="num">'+ft(r.sum)+'</span></label></li>'}).join('')+'</ul>'+
       '<details class="move"'+(pk.ch.k==='online'?' open':'')+'><summary>Lista átemelése a(z) '+esc(s.n)+' oldalára</summary>'+(s.q?'<ol>'+pk.rows.map(function(r){var p=C[r.it.pid];return'<li><a href="'+out(s.q+encodeURIComponent(p.n.replace(/\s*\(.*\)/,'')))+'" target="_blank" rel="noopener" data-out="'+s.id+'" data-kind="search">'+esc(p.n)+' keresése</a> <span class="sub">'+esc(r.e.n)+'</span></li>'}).join('')+'</ol><p class="hint" style="margin-top:8px">Minden tétel a bolt saját keresőjében nyílik meg, ott teszed kosárba.</p>':'<p class="hint" style="margin-top:8px">Ennél a boltnál nincs közvetlen kereső-link. Nyisd meg az oldalát, a listát pedig másold át.</p>')+
-      '<div class="row" style="margin-top:10px"><a class="btn small" href="'+out(s.url)+'" target="_blank" rel="noopener" data-out="'+s.id+'" data-kind="open">'+esc(s.n)+' megnyitása</a></div></details></div>'}).join('');
+      '<div class="row" style="margin-top:10px"><a class="btn small" href="'+out(s.url)+'" target="_blank" rel="noopener" data-out="'+s.id+'" data-kind="open">'+esc(s.n)+' megnyitása</a></div></details></div>'}).join('')+custCard;
   var url=shareUrl();$('share-url').value=url;$('wa').href='https://wa.me/?text='+encodeURIComponent('Bevásárlócetli: '+url);
   var q=$('qr');if(window.QRCode&&q.dataset.u!==url){q.innerHTML='';q.dataset.u=url;try{new QRCode(q,{text:url,width:180,height:180,correctLevel:QRCode.CorrectLevel.M})}catch(e){q.textContent='A lista túl hosszú a QR-kódhoz, használd a linket.'}}
   $('install').hidden=!installEvt;
@@ -599,12 +643,14 @@ document.addEventListener('click',function(ev){var o=ev.target.closest('[data-ou
   if(b.dataset.mode){S.mode=b.dataset.mode;S.k=0;render();return}
   if(a==='inc'||a==='dec'){var it=S.items.filter(function(i){return i[0]===p})[0],st=loose(C[p])?.5:1;if(!it)return;it[1]=Math.min(30,Math.max(st,it[1]+(a==='inc'?st:-st)));touch();render()}
   else if(a==='del'){S.items=S.items.filter(function(i){return i[0]!==p});touch();render()}
-  else if(a==='clear'){S.items=[];S.miss=[];S.done={};touch(true);render();$('add-text').focus()}
-  else if(a==='preset'){var r=parseText(PRESETS[+b.dataset.i][1]);S.items=r.items.map(function(i){return[i.pid,i.q]});S.miss=[];S.done={};touch(true);render()}
+  else if(a==='cdel'){S.custom.splice(+b.dataset.c,1);touch();render()}
+  else if(a==='alt'){var cn=S.custom.splice(+b.dataset.c,1)[0];addItems([{pid:p,q:1}]);touch();render();toast(cn+' helyett: '+C[p].n)}
+  else if(a==='clear'){S.items=[];S.custom=[];S.done={};touch(true);render();$('add-text').focus()}
+  else if(a==='preset'){var r=parseText(PRESETS[+b.dataset.i][1]);S.items=r.items.map(function(i){return[i.pid,i.q]});S.custom=[];S.done={};touch(true);render()}
   else if(a==='swap'){var to=+b.dataset.to;S.items=S.items.map(function(i){return i[0]===p?[to,i[1]]:i});touch();render();toast('Kicseréltem: '+C[to].n)}
   else if(a==='store'){var i=S.stores.indexOf(b.dataset.s);if(i>=0)S.stores.splice(i,1);else S.stores.push(b.dataset.s);S.k=0;render()}
   else if(a==='k'){S.k=+b.dataset.k;render()}
-  else if(a==='add'){addItems([{pid:p,q:1}]);touch();render();toast(C[p].n+' a cetlin')}
+  else if(a==='add'){if(S.example){S.items=[];S.custom=[]}addItems([{pid:p,q:1}]);touch();render();toast(C[p].n+' a cetlin')}
   else if(a==='copy'){var t=planText();if(t)copy(t,'A lista a vágólapon')}
   else if(a==='copy-link'){copy(shareUrl(),'Link a vágólapon')}
   else if(a==='copy-embed'){copy($('embed-code').textContent,'Kód a vágólapon')}
@@ -612,7 +658,7 @@ document.addEventListener('click',function(ev){var o=ev.target.closest('[data-ou
   else if(a==='install'){if(installEvt){installEvt.prompt();installEvt=null;b.hidden=true}}
   else if(a==='reset-done'){S.done={};render()}
   else if(a==='mic'){dictate(b)}
-  else if(a==='widget-open'){var w=parseText(wText);if(w.items.length){S.items=w.items.map(function(i){return[i.pid,i.q]});S.miss=w.miss;S.mode='vegyes';touch(true);render()}}
+  else if(a==='widget-open'){var w=parseText(wText);if(w.items.length){S.items=w.items.map(function(i){return[i.pid,i.q]});S.custom=w.custom;S.mode='vegyes';touch(true);render()}}
 });
 function dictate(btn){var SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return;if(rec){rec.stop();return}
   try{rec=new SR();rec.lang='hu-HU';rec.interimResults=false;btn.classList.add('on');
@@ -620,7 +666,7 @@ function dictate(btn){var SR=window.SpeechRecognition||window.webkitSpeechRecogn
     rec.onerror=function(){toast('Nem sikerült a diktálás. Engedélyezd a mikrofont.')};
     rec.onend=function(){btn.classList.remove('on');rec=null};rec.start()}catch(e){rec=null;btn.classList.remove('on')}}
 document.addEventListener('submit',function(ev){ev.preventDefault();var f=ev.target;if(!DATA)return;
-  if(f.id==='add-form'){var ta=$('add-text'),r=parseText(ta.value);if(!r.items.length&&!r.miss.length)return;if(S.example&&r.items.length)S.items=[];addItems(r.items);S.miss=r.miss;if(r.items.length)touch();ta.value='';render();if(r.items.length)$('cetli-h').scrollIntoView({behavior:'smooth',block:'start'})}
+  if(f.id==='add-form'){var ta=$('add-text'),r=parseText(ta.value);if(!r.items.length&&!r.custom.length){toast('Írj be legalább egy terméket, például: tej, kenyér.');ta.focus();return}if(S.example){S.items=[];S.custom=[]}addItems(r.items);addCustom(r.custom);touch();ta.value='';render();$('cetli-h').scrollIntoView({behavior:'smooth',block:'start'});toast(r.items.length+' tétel árral'+(r.custom.length?', '+r.custom.length+' ár nélkül':'')+' a cetlin')}
   else if(f.dataset.form==='reg'){var em=f.querySelector('input[type=email]').value.trim().toLowerCase(),news=f.querySelectorAll('input[type=checkbox]')[1].checked,btn=f.querySelector('button');
     if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(em)){toast('Ez nem tűnik e-mail-címnek.');return}
     btn.disabled=true;btn.textContent='Egy pillanat…';
@@ -647,7 +693,8 @@ function start(hotData){
   fetch('data/prices.json').then(function(r){if(!r.ok)throw 0;return r.json()}).then(function(d){
     setData(d);load(hotData&&hotData.items?hotData:stored());
     var m=/[?&]l=([0-9x.,]+)/.exec(location.search);
-    if(m){var li=m[1].split(',').map(function(x){var a=x.split('x');return[+a[0],Math.min(30,+a[1]||1)]}).filter(function(i){return C[i[0]]});if(li.length){S.items=li;S.miss=[];if(S.example)touch()}}
+    if(m){var li=m[1].split(',').map(function(x){var a=x.split('x');return[+a[0],Math.min(30,+a[1]||1)]}).filter(function(i){return C[i[0]]});if(li.length){S.items=li;S.custom=[];if(S.example)touch()}}
+    var mx=/[?&]x=([^&#]+)/.exec(location.search);if(mx){try{S.custom=decodeURIComponent(mx[1]).split('|').filter(Boolean).map(function(x){return x.slice(0,40)}).slice(0,40);if(!m)S.items=[];if(S.example)touch()}catch(e){}}
     $('src').innerHTML='<span>Minden akció és ár egy helyen · 9 áruházlánc</span><span>'+ft(d.products).replace(/\s*Ft$/,'')+' termék ára · frissítve: '+esc(d.updated)+' · forrás: GVH Árfigyelő</span>';
     var pop=[1,46,14,18,12,10,41,54,51,101,126,131,145,161];
     $('seo-links').innerHTML=pop.filter(function(i){return C[i]}).map(function(i){return'<a class="chip" href="hol-olcsobb/'+C[i].s+'/">'+esc(C[i].n)+' ára</a>'}).join('')+'<a class="chip" href="hol-olcsobb/">Összes termék ára boltonként</a>';
