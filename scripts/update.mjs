@@ -207,7 +207,7 @@ const head = (title, desc, path, depth, extra = '') => `<!DOCTYPE html>
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}">
 <link rel="canonical" href="${SITE}${path}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
 <meta property="og:type" content="website"><meta property="og:url" content="${SITE}${path}"><meta property="og:locale" content="hu_HU">
-<link rel="icon" href="${'../'.repeat(depth)}icon.svg" type="image/svg+xml"><link rel="stylesheet" href="${'../'.repeat(depth)}pages.css">${extra}</head><body>
+<link rel="icon" href="${'../'.repeat(depth)}icon.svg" type="image/svg+xml"><link rel="stylesheet" href="${'../'.repeat(depth)}pages.css">${extra}<script defer src="/portfolio-analytics.js"></script></head><body>
 <header class="top"><a class="logo" href="${'../'.repeat(depth)}">bármiár<i></i></a><a class="btn" href="${'../'.repeat(depth)}">Kosárbontó megnyitása</a></header><main>`;
 const foot = depth => `</main><footer><p>Árak forrása: GVH Árfigyelő (arfigyelo.gvh.hu); sör, üdítő, csokoládé: Kifli.hu és Auchan webáruház. Frissítve: ${today}. Az árak tájékoztató jellegűek, boltonként eltérhetnek.</p>
 <p><a href="${'../'.repeat(depth)}akciok/">Mai akciók</a> · <a href="${'../'.repeat(depth)}hol-olcsobb/">Összes termék</a> · <a href="${'../'.repeat(depth)}adatkezeles.html">Adatkezelés</a> · A Bármiár független szolgáltatás, nem áll kapcsolatban az áruházláncokkal.</p></footer></body></html>`;
