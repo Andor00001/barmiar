@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 225" role="img" aria-label="barmiar.hu – Legjobb árak bármiár-on"><g transform="translate(20 19) scale(.70)">
+<path d="M16 76 Q70 45 125 79 L125 205 Q72 174 16 202Z" fill="#0F2537"/>
+<path d="M31 101 Q76 83 110 104 M31 135 Q72 119 110 138 M31 168 Q73 153 110 170" fill="none" stroke="white" stroke-width="12" stroke-linecap="round"/>
+<path d="M136 79 Q189 47 239 75 Q250 81 250 98 L250 200 Q191 176 136 207Z" fill="#E63946"/>
+<path d="M26 216 Q76 195 121 224 M141 225 Q191 194 244 214" fill="none" stroke="#FFB703" stroke-width="11" stroke-linecap="round"/>
+<path d="M171 70 Q169 32 201 32 Q234 32 233 74" fill="none" stroke="#FFB703" stroke-width="12" stroke-linecap="round"/>
+<circle cx="200" cy="85" r="9" fill="white"/><circle cx="173" cy="125" r="13" fill="none" stroke="white" stroke-width="10"/><circle cx="212" cy="168" r="13" fill="none" stroke="white" stroke-width="10"/><path d="M163 187 L224 111" stroke="white" stroke-width="12" stroke-linecap="round"/>
+</g><g font-family="DejaVu Sans,Arial,sans-serif" font-weight="bold" font-size="81" letter-spacing="-4"><text x="238" y="140" fill="#0F2537">barmi</text><text x="490" y="140" fill="#E63946">ar</text><text x="586" y="140" fill="#0F2537">.hu</text></g><text x="238" y="194" font-size="33" font-weight="600" fill="#0F2537" font-family="DejaVu Sans,Arial,sans-serif">Legjobb árak bármiár-on</text></svg>
