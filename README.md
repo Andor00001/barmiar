@@ -26,7 +26,7 @@ A `signups` és `outbound_clicks` táblák a `barmiar` Supabase-projektben vanna
 - **Termékkereső** (`#termekek`, illetve `?q=keresőszó`).
 - **Akciók fül**: az összes ma jelentett akció, boltra, kategóriára szűrve; keresőknek a naponta generált `akciok/` oldalak.
 - **Kiszállítás**: boltonként szerkeszthető minimum, díj és ingyenes határ; Kifli.hu és Metro feltételei (áradat nélkül).
-- **Ingyenes keret**: 1 összeállítás regisztráció nélkül, utána e-mail-címenként 10 (Supabase `usage` tábla, `bump_build` függvény).
+- **Teljesen ingyenes indulás**: a bevásárlólista-összehasonlítás regisztráció és kvóta nélkül használható. A meglévő regisztrációs infrastruktúra megmaradt, de az összehasonlításkor nem hívódik meg.
 - **MI-asszisztenseknek**: `llms.txt` és bővített `robots.txt`. Fotók: Unsplash (szabad felhasználású).
 
 ## Kiegészítő árforrás (2026-11-12)
@@ -35,4 +35,13 @@ A `signups` és `outbound_clicks` táblák a `barmiar` Supabase-projektben vanna
 - Naponta legfeljebb egyszer kérdez, névvel azonosított robotként, kb. 60 kéréssel; ha egy bolt elutasít, aznap leáll. Ami nem jön meg, legfeljebb 3 napig a legutóbbi árral látszik.
 - A Tesco webáruháza robotot nem enged be, a Spar mindent tilt: ezeket nem olvassuk.
 - A számítás valós kiszerelésekkel dolgozik: annyi csomag ára, amennyi a kért mennyiséghez kell.
-- Egyelőre minden ingyenes; az első összeállítás után csak ingyenes e-mailes regisztráció kell.
+- Egyelőre minden ingyenes, és az ár-összehasonlításhoz nem kell regisztráció.
+
+## Akciós újságok, automatikus beszerzés – ellenőrzött megközelítés (2026-11-17)
+
+- Új `ujsagok.html`: a Lidl, ALDI és Tesco hivatalos újságoldalaira vezető, ingyenes belépési pontok; nem tünteti fel az ottani PDF-eket saját tulajdonként vagy saját automatikus feldolgozásként.
+- Hivatalos források: https://www.lidl.hu/c/szorolap/s10013623 ; https://www.aldi.hu/online-akcios-ujsag ; https://www.tesco.hu/akciok/katalogusok . Az egyes oldalakon megjelennek a kiadványok érvényességi idői. Az aktuális PDF-URL-ek változhatnak.
+- A meglévő `scripts/extra.mjs` továbbra is **termékszintű** automatikus ajánlatokat olvas Lidl, Penny, ALDI forrásból; az `update.mjs` a GVH napi áraival dolgozik. **Nem készült** teljes PDF/újság OCR import vagy Tesco/Spar automatikus feldolgozás.
+- További fejlesztés előtt forrásonként dokumentálandó: hivatalos feed vagy újraközlési engedély; robothozzáférés; megjelenési ütemezés; forrásdátum és érvényesség; hibás ár eszkalációja. Ne kerüljön publikálásra AI-által becsült ár.
+- Javasolt REA AI feladat: adatforrások és hibajelzések elemzése, de emberi/automatikus validációs kapuval. Javasolt Artcraft feladat: eredeti arculati kiegészítők és közösségi kreatívok, nem megtévesztő ár- vagy termékfotók készítése.
+- A PR közzététele előtt ellenőrizendő: a regisztráció nélküli első és második cetli; mobil navigáció; szűrés; hivatalos linksor; `node scripts/update.mjs` sikeres futása; az előálló sitemap és llms.txt; a korábban telepített PWA cache frissítése.
