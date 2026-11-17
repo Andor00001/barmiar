@@ -1,0 +1,33 @@
+name: Bármiár arculati képek
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'icon.svg'
+      - 'scripts/generate-brand.mjs'
+      - '.github/workflows/brand-assets.yml'
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: brand-assets
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install temporary SVG raster renderer
+        run: npm install --no-save --ignore-scripts sharp
+      - name: Create PWA icons and social preview
+        run: node scripts/generate-brand.mjs
+      - name: Commit only generated images
+        run: |
+          git config user.name "barmiar-brand-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add icon-192.png icon-512.png img/og.jpg
+          if ! git diff --cached --quiet; then
+            git commit -m "Friss arculati kepek generalasa"
+            git push
+          fi
