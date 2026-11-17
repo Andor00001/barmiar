@@ -1,1 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" fill="#0a66c2"/><g transform="rotate(-6 256 256)"><rect x="96" y="150" width="320" height="212" rx="44" fill="#ffdd33"/><text x="256" y="322" text-anchor="middle" font-family="Arial Black,Arial,sans-serif" font-weight="900" font-size="170" fill="#0b2942">%</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Bármiár – akciós katalógus">
+<rect width="512" height="512" rx="96" fill="#fff"/>
+<path d="M50 135 Q146 85 248 147 L248 416 Q151 354 50 405Z" fill="#0F2537"/>
+<path d="M79 173 Q152 142 215 181 M79 230 Q151 203 215 242 M79 287 Q147 261 215 298" fill="none" stroke="white" stroke-width="21" stroke-linecap="round"/>
+<path d="M264 144 Q344 95 445 139 Q465 151 465 172 L465 400 Q355 357 264 420Z" fill="#E63946"/>
+<path d="M67 426 Q154 387 244 442 M275 442 Q365 385 455 423" fill="none" stroke="#FFB703" stroke-width="24" stroke-linecap="round"/>
+<path d="M324 130 Q319 67 377 67 Q436 67 430 132" fill="none" stroke="#FFB703" stroke-width="20" stroke-linecap="round"/>
+<circle cx="371" cy="154" r="17" fill="white"/>
+<circle cx="335" cy="232" r="27" fill="none" stroke="white" stroke-width="19"/>
+<circle cx="400" cy="333" r="27" fill="none" stroke="white" stroke-width="19"/>
+<path d="M314 365 L422 198" stroke="white" stroke-width="24" stroke-linecap="round"/>
+</svg>
