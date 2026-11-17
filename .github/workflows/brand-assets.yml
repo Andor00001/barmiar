@@ -19,7 +19,9 @@ jobs:
         with:
           node-version: 22
       - name: Install temporary SVG raster renderer
-        run: npm install --no-save --ignore-scripts sharp
+        run: |
+          npm init -y >/dev/null
+          npm install --no-save sharp
       - name: Create PWA icons and social preview
         run: node scripts/generate-brand.mjs
       - name: Commit only generated images
