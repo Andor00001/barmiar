@@ -35,7 +35,7 @@ A `signups` és `outbound_clicks` táblák a `barmiar` Supabase-projektben vanna
 - Naponta legfeljebb egyszer kérdez, névvel azonosított robotként, kb. 60 kéréssel; ha egy bolt elutasít, aznap leáll. Ami nem jön meg, legfeljebb 3 napig a legutóbbi árral látszik.
 - A Tesco webáruháza robotot nem enged be, a Spar mindent tilt: ezeket nem olvassuk.
 - A számítás valós kiszerelésekkel dolgozik: annyi csomag ára, amennyi a kért mennyiséghez kell.
-- Egyelőre minden ingyenes; az első összeállítás után csak ingyenes e-mailes regisztráció kell.
+- Egyelőre minden ingyenes, és az ár-összehasonlításhoz nem kell regisztráció.
 
 ## Akciós újságok, automatikus beszerzés – ellenőrzött megközelítés (2026-11-17)
 
