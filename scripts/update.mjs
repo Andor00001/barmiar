@@ -212,7 +212,7 @@ const head = (title, desc, path, depth, extra = '') => `<!DOCTYPE html>
 const foot = depth => `</main><footer><p>Árak forrása: GVH Árfigyelő (arfigyelo.gvh.hu); sör, üdítő, csokoládé: Kifli.hu és Auchan webáruház. Frissítve: ${today}. Az árak tájékoztató jellegűek, boltonként eltérhetnek.</p>
 <p><a href="${'../'.repeat(depth)}akciok/">Mai akciók</a> · <a href="${'../'.repeat(depth)}hol-olcsobb/">Összes termék</a> · <a href="${'../'.repeat(depth)}adatkezeles.html">Adatkezelés</a> · A Bármiár független szolgáltatás, nem áll kapcsolatban az áruházláncokkal.</p></footer></body></html>`;
 await rm('hol-olcsobb', { recursive: true, force: true });
-const urls = ['', 'hol-olcsobb/'];
+const urls = ['', 'hol-olcsobb/', 'ujsagok.html'];
 for (const c of cats) {
   const rows = Object.entries(c.o).map(([ch, e]) => ({ ch, e })).sort((a, b) => a.e.u - b.e.u);
   const best = rows[0], worst = rows[rows.length - 1];
@@ -357,10 +357,11 @@ await writeFile('llms.txt', `# Bármiár (barmiar.hu)
 - Két lista: „Legjobb áron” (kategóriánként a legolcsóbb megfelelő termék) és „Kívánság szerint” (pontosan a felírt márka vagy termék).
 - Kosárbontás több bolt között személyes vásárlásra, online rendelésre vagy vegyesen; számol a kiszállítási díjjal, a minimális rendelési értékkel és a plusz megálló költségével.
 - Termékkereső az összes termék áraival, és napi akciólista boltonként.
-- Ár: a cetli, az akciók és a kereső ingyenes; a kosárbontás az első alkalommal regisztráció nélkül, utána ingyenes regisztrációval korlátlan.
+- Ár: a cetli, az akciók és a kereső ingyenes; a kosárbontás regisztráció nélkül is korlátlanul ingyenes.
 
 ## Oldalak
 - [Kezdőlap, cetli és kosárbontó](${SITE})
+- [Hivatalos akciós újságok](${SITE}ujsagok.html): ellenőrzött áruházi forrásoldalak
 - [Mai akciók](${SITE}akciok/): a nap legnagyobb kedvezményei, boltonként is
 - [Hol olcsóbb?](${SITE}hol-olcsobb/): ${cats.length} termékkategória ára boltonként
 - [Oldaltérkép](${SITE}sitemap.xml)
