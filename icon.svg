@@ -1,12 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Bármiár – akciós katalógus">
-<rect width="512" height="512" rx="96" fill="#fff"/>
-<path d="M50 135 Q146 85 248 147 L248 416 Q151 354 50 405Z" fill="#0F2537"/>
-<path d="M79 173 Q152 142 215 181 M79 230 Q151 203 215 242 M79 287 Q147 261 215 298" fill="none" stroke="white" stroke-width="21" stroke-linecap="round"/>
-<path d="M264 144 Q344 95 445 139 Q465 151 465 172 L465 400 Q355 357 264 420Z" fill="#E63946"/>
-<path d="M67 426 Q154 387 244 442 M275 442 Q365 385 455 423" fill="none" stroke="#FFB703" stroke-width="24" stroke-linecap="round"/>
-<path d="M324 130 Q319 67 377 67 Q436 67 430 132" fill="none" stroke="#FFB703" stroke-width="20" stroke-linecap="round"/>
-<circle cx="371" cy="154" r="17" fill="white"/>
-<circle cx="335" cy="232" r="27" fill="none" stroke="white" stroke-width="19"/>
-<circle cx="400" cy="333" r="27" fill="none" stroke="white" stroke-width="19"/>
-<path d="M314 365 L422 198" stroke="white" stroke-width="24" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 266 256" role="img" aria-label="Bármiár – akciós katalógus">
+<path d="M16 76 Q70 45 125 79 L125 205 Q72 174 16 202Z" fill="#0F2537"/>
+<path d="M31 101 Q76 83 110 104 M31 135 Q72 119 110 138 M31 168 Q73 153 110 170" fill="none" stroke="white" stroke-width="12" stroke-linecap="round"/>
+<path d="M136 79 Q189 47 239 75 Q250 81 250 98 L250 200 Q191 176 136 207Z" fill="#E63946"/>
+<path d="M26 216 Q76 195 121 224 M141 225 Q191 194 244 214" fill="none" stroke="#FFB703" stroke-width="11" stroke-linecap="round"/>
+<path d="M171 70 Q169 32 201 32 Q234 32 233 74" fill="none" stroke="#FFB703" stroke-width="12" stroke-linecap="round"/>
+<circle cx="200" cy="85" r="9" fill="white"/><circle cx="173" cy="125" r="13" fill="none" stroke="white" stroke-width="10"/><circle cx="212" cy="168" r="13" fill="none" stroke="white" stroke-width="10"/><path d="M163 187 L224 111" stroke="white" stroke-width="12" stroke-linecap="round"/>
 </svg>
