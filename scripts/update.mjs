@@ -2,7 +2,7 @@
 // Futtatás: node scripts/update.mjs   (Node 20+, külső csomag nélkül)
 // Kimenet: data/prices.json, data/products.json, data/history.json, hol-olcsobb/**, akciok/**, llms.txt, robots.txt, sitemap.xml
 import { writeFile, readFile, mkdir, rm } from 'node:fs/promises';
-import { fetchExtra, fetchFlyers } from './extra.mjs';
+import { fetchExtra, fetchFlyers, flyerAppliesToday } from './extra.mjs';
 
 const API = 'https://arfigyelo.gvh.hu/api';
 const SITE = (process.env.SITE_URL || 'https://barmiar.hu/').replace(/\/?$/, '/');
@@ -173,7 +173,9 @@ if (process.env.FORCE_EXTRA || fly.updated !== today) {
   } catch (e) { console.log('Szórólap kihagyva: ' + e.message); }
 }
 await writeFile('data/flyers.json', JSON.stringify({ updated: fly.updated, auto: fly.items, items: fly.items.concat(manual.map(x => x.slice(0, 7))) }));
-const flyers = fly.items.concat(manual).map(x => ({ s: x[0], n: x[1], k: x[2], u: x[3], p: x[4], w: x[5] }));
+const flyers = fly.items.concat(manual)
+  .filter(x => flyerAppliesToday(x[6], x[7], today))
+  .map(x => ({ s: x[0], n: x[1], k: x[2], u: x[3], p: x[4], w: x[5] }));
 let extra = { cats: [], rows: [], log: [] };
 if (!process.env.FORCE_EXTRA && oldCats.length && oldCats.every(c => c.x === today)) extra = { cats: oldCats, rows: oldRows, log: ['ma már lekérdezve, a reggeli adat marad'] };
 else {
