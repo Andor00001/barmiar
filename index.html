@@ -528,7 +528,7 @@ nav.main a.hot[aria-current="page"]{background:var(--promo);color:var(--promo-in
 <footer><div class="wrap">
   <p><b>Bármiár</b> · Keresd a legjobb árakat a barmiar.hu-n. Üzemelteti az Országos Rendezvényiroda Zrt. Független szolgáltatás, nem áll kapcsolatban az áruházláncokkal. A boltnevek a tulajdonosaik védjegyei.</p>
   <p>Árak forrása: GVH Árfigyelő (arfigyelo.gvh.hu); sör, üdítő és csokoládé: a Kifli.hu és az Auchan nyilvános webáruháza; heti szórólap-ajánlatok: a Lidl, a Penny és az Aldi honlapja. Naponta egyszer frissítve. Az árak tájékoztató jellegűek, boltonként és időpontonként eltérhetnek. A boltokra mutató linkeken jelezzük, hogy a látogató a Bármiárról érkezett.</p>
-  <p><a href="akciok/">Mai akciók</a> · <a href="hol-olcsobb/">Hol olcsóbb?</a> · <a href="adatkezeles.html">Adatkezelési tájékoztató</a> · Fotók: Unsplash</p>
+  <p><a href="akciok/">Mai akciók</a> · <a href="hol-olcsobb/">Hol olcsóbb?</a> · <a href="adatkezeles.html#impresszum">Impresszum</a> · <a href="adatkezeles.html">Adatkezelési tájékoztató</a> · Fotók: Unsplash</p>
 </div></footer>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
@@ -1022,7 +1022,7 @@ function start(hotData){
     $('src').innerHTML='<span>Minden akció és ár egy helyen · 9 áruházlánc és a Kifli.hu</span><span>'+ft(d.products).replace(/\s*Ft$/,'')+' termék ára · frissítve: '+esc(d.updated)+' · forrás: GVH Árfigyelő, Kifli.hu, Auchan</span>';
     var pop=[1,46,14,18,12,10,41,54,51,101,126,131,145,161];
     $('seo-links').innerHTML='<a class="chip" href="akciok/">Mai akciók boltonként</a>'+pop.filter(function(i){return C[i]}).map(function(i){return'<a class="chip" href="hol-olcsobb/'+C[i].s+'/">'+esc(C[i].n)+' ára</a>'}).join('')+'<a class="chip" href="hol-olcsobb/">Összes termék ára boltonként</a>';
-    if(PREVIEW)[].forEach.call(document.querySelectorAll('a[href^="hol-olcsobb/"],a[href^="akciok/"],a[href="adatkezeles.html"]'),function(l){l.href=LIVE+l.getAttribute('href');l.target='_blank';l.rel='noopener'});
+    if(PREVIEW)[].forEach.call(document.querySelectorAll('a[href^="hol-olcsobb/"],a[href^="akciok/"],a[href^="adatkezeles.html"]'),function(l){l.href=LIVE+l.getAttribute('href');l.target='_blank';l.rel='noopener'});
     route();render();
     var idle=function(){if(!(navigator.connection&&navigator.connection.saveData))loadProducts()};
     if(hasWish()||S.custom.length||!$('v-akciok').hidden||!$('v-termekek').hidden)loadProducts();else setTimeout(idle,2500);
