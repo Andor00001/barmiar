@@ -78,6 +78,33 @@ async function auchan(def) {
 const unesc = t => t.replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&#(\d+);/g, (m, c) => String.fromCharCode(+c)).replace(/&amp;/g, '&');
 const tidy = t => { let n = String(t).replace(/\+\s*\d+\s*FT\s*BET[ÉE]TD[ÍI]J/i, '').replace(/\s+/g, ' ').trim(); if (n === n.toUpperCase() && n.length > 3) n = n.charAt(0) + n.slice(1).toLowerCase(); return n; };
 const unitOf = t => (/\d\s*(k?g|dkg)\b|\/\s*kg/i.test(t) ? 'kg' : /\d\s*(m|c|d)?l\b|\/\s*l\b/i.test(t) ? 'l' : '');
+// The flyer list can show upcoming offers. Today's prices must respect known validity dates.
+export function flyerAppliesToday(validity, explicitEnd, today) {
+  if (explicitEnd && explicitEnd < today) return false;
+  const label = String(validity || '').split('·', 1)[0].trim();
+  const range = label.match(/^(\d{2})\.(\d{2})\.\s*[-–—]\s*(\d{2})\.(\d{2})\.?$/);
+  const single = label.match(/^(\d{2})\.(\d{2})\.\s*-?\s*(től|ig)$/i);
+  const year = Number(today.slice(0, 4));
+  const reference = Date.parse(today + 'T00:00:00Z');
+  const nearest = (month, day) => {
+    const dates = [year - 1, year, year + 1].map(y => `${y}-${month}-${day}`);
+    return dates.filter(date => {
+      const time = Date.parse(date + 'T00:00:00Z');
+      return Number.isFinite(time) && new Date(time).toISOString().slice(0, 10) === date;
+    }).sort((a, b) => Math.abs(Date.parse(a) - reference) - Math.abs(Date.parse(b) - reference))[0];
+  };
+  if (range) {
+    const start = nearest(range[1], range[2]);
+    const end = nearest(range[3], range[4]);
+    return !!(start && end && start <= today && today <= end);
+  }
+  if (single) {
+    const date = nearest(single[1], single[2]);
+    return !!date && (single[3].toLowerCase() === 'től' ? date <= today : today <= date);
+  }
+  return true;
+}
+
 function nuxt(html) {
   const m = html.match(/<script[^>]*id="__NUXT_DATA__"[^>]*>([\s\S]*?)<\/script>/); if (!m) return null;
   const arr = JSON.parse(m[1]);
