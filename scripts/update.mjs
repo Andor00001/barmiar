@@ -204,11 +204,14 @@ if (hist.days[hist.days.length - 1] !== today) {
 // ---- keresőbarát aloldalak: hol-olcsobb/<termék>/ ----
 const unitLabel = u => ({ kg: 'kg', l: 'l', db: 'db', m: 'm', g: 'g' }[u] || u);
 const amount = (k, u) => String(k).replace('.', ',') + ' ' + unitLabel(u);
+const robotsMeta = extra => /name=["']robots["']/.test(extra) ? '' : '<meta name="robots" content="index,follow,max-image-preview:large">';
+const faqLd = items => ({ '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: items.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) });
+const faqHtml = items => `<h2>Gyakori kérdések</h2>${items.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('\n')}`;
 const head = (title, desc, path, depth, extra = '') => `<!DOCTYPE html>
 <html lang="hu"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title><meta name="description" content="${esc(desc)}">
+<title>${esc(title)}</title><meta name="description" content="${esc(desc)}">${robotsMeta(extra)}
 <link rel="canonical" href="${SITE}${path}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}">
-<meta property="og:type" content="website"><meta property="og:url" content="${SITE}${path}"><meta property="og:locale" content="hu_HU">
+<meta property="og:type" content="website"><meta property="og:url" content="${SITE}${path}"><meta property="og:locale" content="hu_HU"><meta property="og:image" content="${SITE}img/og.jpg">
 <link rel="icon" href="${'../'.repeat(depth)}icon.svg" type="image/svg+xml"><link rel="stylesheet" href="${'../'.repeat(depth)}pages.css">${extra}<script defer src="/portfolio-analytics.js"></script></head><body>
 <header class="top"><a class="logo" href="${'../'.repeat(depth)}">bármiár<i></i></a><a class="btn" href="${'../'.repeat(depth)}">Kosárbontó megnyitása</a></header><main>`;
 const foot = depth => `</main><footer><p>Árak forrása: GVH Árfigyelő (arfigyelo.gvh.hu); sör, üdítő, csokoládé: Kifli.hu és Auchan webáruház. Frissítve: ${today}. Az árak tájékoztató jellegűek, boltonként eltérhetnek.</p>
@@ -235,7 +238,16 @@ for (const c of cats) {
   }
   const ld2 = { '@context': 'https://schema.org', '@type': 'Product', name: c.n, category: c.g, description: desc,
     offers: { '@type': 'AggregateOffer', priceCurrency: 'HUF', lowPrice: Math.min(...rows.map(r => r.e.p)), highPrice: Math.max(...rows.map(r => r.e.p)), offerCount: rows.length } };
-  const html = head(title, desc, `hol-olcsobb/${c.s}/`, 2, `<script type="application/ld+json">${JSON.stringify(ld)}</script><script type="application/ld+json">${JSON.stringify(ld2)}</script>`) + `
+  const qna = [
+    [`Hol a legolcsóbb a ${c.n} ma?`, `Ma a legjobb egységárat a ${CHAIN_NAMES[best.ch]} adja: ${ft(best.e.u)}/${unitLabel(c.u)}.`],
+    [`Mennyi most a ${c.n} ára a boltokban?`, rows.length > 1
+      ? `A vizsgált láncoknál ${ft(best.e.u)}/${unitLabel(c.u)} és ${ft(worst.e.u)}/${unitLabel(c.u)} között van, a különbség ${Math.round((1 - best.e.u / worst.e.u) * 100)}%. ${rows.length} áruházlánc árát hasonlítjuk össze, naponta frissítve.`
+      : `Jelenleg ${rows.length} áruházláncnál látjuk: ${ft(best.e.u)}/${unitLabel(c.u)} (${CHAIN_NAMES[best.ch]}).`],
+    ['Honnan származnak az árak?', c.x
+      ? 'Ennek a termékkörnek az árai a Kifli.hu és az Auchan nyilvános webáruházából jönnek. Az árak tájékoztató jellegűek, boltonként eltérhetnek.'
+      : 'A Gazdasági Versenyhivatal Árfigyelő adatbázisából, amelybe az áruházláncok naponta töltik fel az áraikat. Az árak tájékoztató jellegűek, boltonként eltérhetnek.'],
+  ];
+  const html = head(title, desc, `hol-olcsobb/${c.s}/`, 2, `<script type="application/ld+json">${JSON.stringify(ld)}</script><script type="application/ld+json">${JSON.stringify(ld2)}</script><script type="application/ld+json">${JSON.stringify(faqLd(qna))}</script>`) + `
 <nav class="crumb"><a href="../../">Bármiár</a> › <a href="../">Hol olcsóbb?</a> › ${esc(c.g)}</nav>
 <h1>${esc(c.n)}: hol a legolcsóbb ma?</h1>
 <p class="lead">Ma a legjobb egységárat a <b>${CHAIN_NAMES[best.ch]}</b> adja: <b>${ft(best.e.u)}/${unitLabel(c.u)}</b>.${rows.length > 1 ? ` A legdrágább láncnál (${CHAIN_NAMES[worst.ch]}) ugyanez ${ft(worst.e.u)}/${unitLabel(c.u)}, a különbség ${Math.round((1 - best.e.u / worst.e.u) * 100)}%.` : ''}</p>
@@ -246,15 +258,31 @@ ${rows.map((r, i) => `<tr${i ? '' : ' class="win"'}><td><b>${CHAIN_NAMES[r.ch]}<
 <h2>Miért érdemes a teljes listát nézni?</h2>
 <p>Egy termék ritkán dönti el, hova érdemes menni. A Bármiár a teljes bevásárlólistádat nézi egyszerre: megmondja, melyik boltból mit vegyél vagy rendelj, és forintra kiszámolja, mennyit spórolsz vele. ${c.x ? `Ennek a termékkörnek az árai a Kifli.hu és az Auchan saját webáruházából származnak (frissítve: ${c.x}); az Auchannál a kategória kiemelt termékeit nézzük.` : `A hivatalos adatbázis kategóriánként a láncok legolcsóbb, jellemző kiszerelésű termékét mutatja (${c.f}).`}</p>
 ${trend}
+${faqHtml(qna)}
 ${related.length ? `<h2>Hasonló termékek</h2><p class="links">${related.map(x => `<a href="../${x.s}/">${esc(x.n)}</a>`).join(' ')}</p>` : ''}` + foot(2);
   await mkdir(`hol-olcsobb/${c.s}`, { recursive: true });
   await writeFile(`hol-olcsobb/${c.s}/index.html`, html);
   urls.push(`hol-olcsobb/${c.s}/`);
 }
 const groups = [...new Set(cats.map(c => c.g))];
-await writeFile('hol-olcsobb/index.html', head('Hol olcsóbb? Élelmiszer- és drogériaárak boltonként | Bármiár', `${cats.length} termékkategória napi ára 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller; sör, üdítő, csokoládé a Kifli.hu-ról is.`, 'hol-olcsobb/', 1) + `
+const hubTitle = 'Hol olcsóbb? Élelmiszer- és drogériaárak boltonként | Bármiár';
+const hubDesc = `${cats.length} termékkategória napi ára 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller; sör, üdítő, csokoládé a Kifli.hu-ról is.`;
+const hubPopular = [4, 31, 14, 55, 51, 39, 33, 18, 52, 77, 30, 126].map(id => cats.find(c => c.id === id)).filter(Boolean);
+const hubQna = [
+  ['Mit mutat a Hol olcsóbb oldal?', `${cats.length} termékkategória napi árát hasonlítja össze 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann és Müller.`],
+  ['Honnan vannak az árak?', 'A Gazdasági Versenyhivatal Árfigyelő adatbázisából; a sör, az üdítő és a csokoládé ára a Kifli.hu és az Auchan nyilvános webáruházából jön.'],
+  ['Hogyan találom meg, melyik boltban olcsóbb egy termék?', 'Válaszd ki a kategóriát: a táblázatban elöl a legjobb egységárú bolt áll. A teljes bevásárlólistát a főoldali cetlivel is össze lehet hasonlítani.'],
+];
+const hubLd = { '@context': 'https://schema.org', '@graph': [
+  { '@type': 'CollectionPage', name: 'Hol olcsóbb? Napi árak boltonként', url: SITE + 'hol-olcsobb/', description: hubDesc, isPartOf: { '@type': 'WebSite', name: 'Bármiár', url: SITE } },
+  { '@type': 'ItemList', name: 'Termékkategóriák napi árai', numberOfItems: cats.length, itemListElement: cats.slice(0, 80).map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.n, url: `${SITE}hol-olcsobb/${c.s}/` })) },
+  faqLd(hubQna),
+] };
+await writeFile('hol-olcsobb/index.html', head(hubTitle, hubDesc, 'hol-olcsobb/', 1, `<script type="application/ld+json">${JSON.stringify(hubLd)}</script>`) + `
 <h1>Hol olcsóbb? Napi árak boltonként</h1><p class="lead">${cats.length} termékkategória, ${productCount.toLocaleString('hu-HU')} termék ára 9 áruházláncnál. Frissítve: ${today}.</p>
-${groups.map(g => `<h2>${esc(g)}</h2><p class="links">${cats.filter(c => c.g === g).map(c => `<a href="${c.s}/">${esc(c.n)}</a>`).join(' ')}</p>`).join('\n')}` + foot(1));
+${hubPopular.length ? `<h2>Gyakran keresett árak</h2><p class="links">${hubPopular.map(c => `<a href="${c.s}/">${esc(c.n)} ára</a>`).join(' ')}</p>` : ''}
+${groups.map(g => `<h2>${esc(g)}</h2><p class="links">${cats.filter(c => c.g === g).map(c => `<a href="${c.s}/">${esc(c.n)}</a>`).join(' ')}</p>`).join('\n')}
+${faqHtml(hubQna)}` + foot(1));
 
 // ---- mai akciók: keresőknek és MI-asszisztenseknek is olvasható, naponta frissülő oldalak ----
 const catName = {}; for (const c of cats) catName[c.id] = c;
@@ -265,8 +293,8 @@ deals.sort((a, b) => b.pct - a.pct || a.p - b.p);
 const dealRow = d => `<tr><td><b>${esc(d.n)}</b><div class="m">${d.k > 0 ? amount(d.k, d.u) + ' · ' : ''}${esc(d.c.n)}</div></td><td>${CHAIN_NAMES[d.ch]}</td><td class="r"><span class="pct">−${d.pct}%</span></td><td class="r"><b>${ft(d.p)}</b> <s>${ft(d.w)}</s></td><td class="r">${d.k > 0 ? ft(d.p / d.k) + '/' + unitLabel(d.u) : ''}</td></tr>`;
 const dealTable = list => `<div class="scroll"><table><thead><tr><th>Termék</th><th>Bolt</th><th class="r">Kedvezmény</th><th class="r">Ár</th><th class="r">Egységár</th></tr></thead><tbody>\n${list.map(dealRow).join('\n')}\n</tbody></table></div>`;
 const dealLd = (list, name, path) => ({ '@context': 'https://schema.org', '@type': 'ItemList', name, url: SITE + path, numberOfItems: list.length,
-  itemListElement: list.slice(0, 25).map((d, i) => ({ '@type': 'ListItem', position: i + 1, item: { '@type': 'Product', name: d.n, category: d.c.n,
-    offers: { '@type': 'Offer', price: d.p, priceCurrency: 'HUF', availability: 'https://schema.org/InStock', seller: { '@type': 'Organization', name: CHAIN_NAMES[d.ch] } } } })) });
+  itemListElement: list.slice(0, 25).map((d, i) => ({ '@type': 'ListItem', position: i + 1, name: d.n, url: SITE + path, item: { '@type': 'Offer', name: d.n, category: d.c.n,
+    price: d.p, priceCurrency: 'HUF', availability: 'https://schema.org/InStock', seller: { '@type': 'Organization', name: CHAIN_NAMES[d.ch] } } })) });
 const byChain = {}; for (const d of deals) (byChain[d.ch] || (byChain[d.ch] = [])).push(d);
 const chainLinks = depth => `<p class="links">${ORDER.filter(ch => byChain[ch]).map(ch => `<a href="${'../'.repeat(depth)}akciok/${ch}/">${CHAIN_NAMES[ch]} akciók (${byChain[ch].length})</a>`).join(' ')}</p>`;
 const faq = [
@@ -275,15 +303,15 @@ const faq = [
   ['Mennyibe kerül a Bármiár?', 'A cetli, az akciók és a termékkereső ingyenes. A teljes lista bolti szétosztása az első alkalommal regisztráció nélkül, utána ingyenes regisztrációval korlátlanul használható.'],
   ['Hogyan lesz az akciókból bevásárlóterv?', 'Tedd a termékeket a cetlire, és a Bármiár kiszámolja, melyik boltból mit érdemes venni vagy rendelni, a kiszállítási díjjal és a minimális rendelési értékkel együtt.'],
 ];
-const faqLd = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: faq.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })) };
-const faqHtml = `<h2>Gyakori kérdések</h2>${faq.map(([q, a]) => `<h3>${esc(q)}</h3><p>${esc(a)}</p>`).join('\n')}`;
+const akciokFaqLd = faqLd(faq);
+const akciokFaqHtml = faqHtml(faq);
 await rm('akciok', { recursive: true, force: true });
 if (deals.length) {
   const top = deals[0], n = deals.length;
   const title = `Mai akciók: a ${Math.min(100, n)} legnagyobb kedvezmény 9 áruházláncban | Bármiár`;
   const desc = `Ma ${n} akciós terméket jelentettek a láncok. A legnagyobb kedvezmény: ${top.n} −${top.pct}% (${CHAIN_NAMES[top.ch]}, ${ft(top.p)}). Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller akciói egy helyen.`;
   await mkdir('akciok', { recursive: true });
-  await writeFile('akciok/index.html', head(title, desc, 'akciok/', 1, `<meta property="og:image" content="${SITE}img/og.jpg"><script type="application/ld+json">${JSON.stringify(dealLd(deals.slice(0, 100), 'Mai legnagyobb akciók', 'akciok/'))}</script><script type="application/ld+json">${JSON.stringify(faqLd)}</script>`) + `
+  await writeFile('akciok/index.html', head(title, desc, 'akciok/', 1, `<meta property="og:image" content="${SITE}img/og.jpg"><script type="application/ld+json">${JSON.stringify(dealLd(deals.slice(0, 100), 'Mai legnagyobb akciók', 'akciok/'))}</script><script type="application/ld+json">${JSON.stringify(akciokFaqLd)}</script>`) + `
 <nav class="crumb"><a href="../">Bármiár</a> › Mai akciók</nav>
 <img class="ban" src="../img/akciok.webp" width="1280" height="384" alt="Áruházi polcsor akciós termékekkel">
 <h1>Mai legnagyobb akciók</h1>
@@ -292,18 +320,28 @@ if (deals.length) {
 <h2>Akciók boltonként</h2>${chainLinks(1)}
 <h2>A ${Math.min(100, n)} legnagyobb kedvezmény ma</h2>
 ${dealTable(deals.slice(0, 100))}
-${faqHtml}` + foot(1));
+${akciokFaqHtml}` + foot(1));
   urls.push('akciok/');
   for (const ch of ORDER) { const list = byChain[ch]; if (!list) continue; const t = list[0], nm = CHAIN_NAMES[ch];
     const ti = `${nm} akciók ma: ${list.length} kedvezményes termék, akár −${t.pct}% | Bármiár`;
     const de = `${nm} mai akciói: ${list.length} termék kedvezménnyel. A legnagyobb: ${t.n} −${t.pct}% (${ft(t.p)}). Naponta frissülő lista a hivatalos áradatbázisból.`;
     await mkdir(`akciok/${ch}`, { recursive: true });
-    await writeFile(`akciok/${ch}/index.html`, head(ti, de, `akciok/${ch}/`, 2, `<meta property="og:image" content="${SITE}img/og.jpg"><script type="application/ld+json">${JSON.stringify(dealLd(list.slice(0, 80), nm + ' mai akciói', `akciok/${ch}/`))}</script>`) + `
+    const storeQna = [
+      [`Mennyi akciós termék van ma a ${nm} kínálatában?`, `A ${nm} ma ${list.length} terméket jelentett akciós áron. A legnagyobb kedvezmény: ${t.n}, −${t.pct}%, ${ft(t.w)} helyett ${ft(t.p)}.`],
+      [`Honnan származnak a ${nm} akciói?`, 'Az áruházláncok naponta jelentik áraikat a Gazdasági Versenyhivatal Árfigyelő adatbázisába. Az árak tájékoztató jellegűek, boltonként eltérhetnek.'],
+    ];
+    const storeLd = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Bármiár', item: SITE },
+      { '@type': 'ListItem', position: 2, name: 'Mai akciók', item: SITE + 'akciok/' },
+      { '@type': 'ListItem', position: 3, name: nm + ' akciók ma', item: `${SITE}akciok/${ch}/` },
+    ] };
+    await writeFile(`akciok/${ch}/index.html`, head(ti, de, `akciok/${ch}/`, 2, `<meta property="og:image" content="${SITE}img/og.jpg"><script type="application/ld+json">${JSON.stringify(storeLd)}</script><script type="application/ld+json">${JSON.stringify(dealLd(list.slice(0, 80), nm + ' mai akciói', `akciok/${ch}/`))}</script><script type="application/ld+json">${JSON.stringify(faqLd(storeQna))}</script>`) + `
 <nav class="crumb"><a href="../../">Bármiár</a> › <a href="../">Mai akciók</a> › ${nm}</nav>
 <h1>${nm} akciók ma</h1>
 <p class="lead">A ${nm} ma (${today}) <b>${list.length} terméket</b> jelentett akciós áron. A legnagyobb kedvezmény: <b>${esc(t.n)}</b>, <b>−${t.pct}%</b>, ${ft(t.w)} helyett ${ft(t.p)}.</p>
 <p class="cta"><a class="btn" href="../../#akciok">Összes akció szűrhetően, cetlire tétellel</a></p>
 ${dealTable(list.slice(0, 80))}
+${faqHtml(storeQna)}
 <h2>Más boltok akciói</h2>${chainLinks(2)}` + foot(2));
     urls.push(`akciok/${ch}/`);
   }

@@ -447,7 +447,7 @@ nav.main a.hot[aria-current="page"]{background:var(--promo);color:var(--promo-in
       <div><h3>Használható bevásárlócetliként telefonon?</h3><p>Igen. A cetli pipálható, kitehető a telefon kezdőképernyőjére, megosztható, és térerő nélkül is megnyílik.</p></div>
     </div>
     <h2 style="margin-top:34px">Hol olcsóbb ma?</h2>
-    <div class="links" id="seo-links"><a class="chip" href="akciok/">Mai akciók boltonként</a><a class="chip" href="hol-olcsobb/">Összes termék ára boltonként</a></div>
+    <div class="links" id="seo-links"><a class="chip" href="akciok/">Mai akciók boltonként</a><a class="chip" href="hol-olcsobb/banan/">Banán ára</a><a class="chip" href="hol-olcsobb/uht-tej-1-5/">UHT tej 1,5% ára</a><a class="chip" href="hol-olcsobb/tojas/">Tojás ára</a><a class="chip" href="hol-olcsobb/porcukor/">Porcukor ára</a><a class="chip" href="hol-olcsobb/napraforgo-etolaj/">Napraforgó étolaj ára</a><a class="chip" href="hol-olcsobb/fokhagyma/">Fokhagyma ára</a><a class="chip" href="hol-olcsobb/narancs/">Narancs ára</a><a class="chip" href="hol-olcsobb/csirkemellfile/">Csirkemellfilé ára</a><a class="chip" href="hol-olcsobb/finomliszt/">Finomliszt ára</a><a class="chip" href="hol-olcsobb/laktozmentes-vajkrem/">Laktózmentes vajkrém ára</a><a class="chip" href="hol-olcsobb/eper/">Eper ára</a><a class="chip" href="hol-olcsobb/wc-papir/">WC-papír ára</a><a class="chip" href="hol-olcsobb/">Összes termék ára boltonként</a></div>
   </div>
 </section>
 
@@ -1020,7 +1020,7 @@ function start(hotData){
     var mx=/[?&]x=([^&#]+)/.exec(location.search);if(mx){try{S.custom=decodeURIComponent(mx[1]).split('|').filter(Boolean).map(function(x){return x.slice(0,40)}).slice(0,40);if(!m)S.items=[];if(S.example)touch()}catch(e){}}
     var mq=/[?&]q=([^&#]+)/.exec(location.search);if(mq){try{S.fq=decodeURIComponent(mq[1].replace(/\+/g,' ')).slice(0,60);location.hash='termekek'}catch(e){}}
     $('src').innerHTML='<span>Minden akció és ár egy helyen · 9 áruházlánc és a Kifli.hu</span><span>'+ft(d.products).replace(/\s*Ft$/,'')+' termék ára · frissítve: '+esc(d.updated)+' · forrás: GVH Árfigyelő, Kifli.hu, Auchan</span>';
-    var pop=[1,46,14,18,12,10,41,54,51,101,126,131,145,161];
+    var pop=[4,31,14,55,51,39,33,18,52,77,30,126,1,46];
     $('seo-links').innerHTML='<a class="chip" href="akciok/">Mai akciók boltonként</a>'+pop.filter(function(i){return C[i]}).map(function(i){return'<a class="chip" href="hol-olcsobb/'+C[i].s+'/">'+esc(C[i].n)+' ára</a>'}).join('')+'<a class="chip" href="hol-olcsobb/">Összes termék ára boltonként</a>';
     if(PREVIEW)[].forEach.call(document.querySelectorAll('a[href^="hol-olcsobb/"],a[href^="akciok/"],a[href^="adatkezeles.html"]'),function(l){l.href=LIVE+l.getAttribute('href');l.target='_blank';l.rel='noopener'});
     route();render();
