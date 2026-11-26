@@ -2,15 +2,15 @@
 
 > Magyar bevásárlólista-optimalizáló és élelmiszerár-összehasonlító. A felhasználó felírja, mit venne, a Bármiár megmondja, melyik boltból mit érdemes venni vagy rendelni, és forintra kiszámolja a megtakarítást. Üzemelteti: Országos Rendezvényiroda Zrt.
 
-## Tények (frissítve: 2026-11-25)
-- 15618 termék napi ára, 168 termékkategóriában, 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller.
+## Tények (frissítve: 2026-11-26)
+- 15609 termék napi ára, 168 termékkategóriában, 9 áruházláncnál: Aldi, Auchan, Lidl, Penny, Spar, Tesco, dm, Rossmann, Müller.
 - Adatforrás: a Gazdasági Versenyhivatal Árfigyelő adatbázisa (arfigyelo.gvh.hu), amelybe a láncok naponta jelentik áraikat. A sör, az üdítő és a csokoládé ára a Kifli.hu és az Auchan nyilvános webáruházából származik, naponta egyszer frissítve.
-- Ma 963 akciós ár szerepel az adatbázisban.
+- Ma 1071 akciós ár szerepel az adatbázisban.
 - Mai kiemelt akció: Lindor Tablet 60% 100 g, Kifli.hu, 899 Ft (−62%, eredetileg 2 339 Ft).
 - Mai kiemelt akció: Rexona Aloe Vera Scent izzadásgátló 200 ml, Tesco, 1 049 Ft (−62%, eredetileg 2 749 Ft).
+- Mai kiemelt akció: Ariel Folyékony Mosószer, 60 Mosáshoz, Color, Tesco, 3 999 Ft (−51%, eredetileg 8 090 Ft).
 - Mai kiemelt akció: Ariel Folyékony Mosószer, 60 Mosáshoz, Mountain Spring, Tesco, 3 999 Ft (−51%, eredetileg 8 090 Ft).
-- Mai kiemelt akció: Ariel Folyékony Mosószer, 50 Mosáshoz, + Extra folteltávolító hatás, Tesco, 3 999 Ft (−51%, eredetileg 8 090 Ft).
-- Mai kiemelt akció: TONY'S Étcsokoládé 50 g, Kifli.hu, 600 Ft (−50%, eredetileg 1 199 Ft).
+- Mai kiemelt akció: Ariel Folyékony Mosószer, 60 Mosáshoz, Sensitive, Tesco, 3 999 Ft (−51%, eredetileg 8 090 Ft).
 
 ## Mit tud
 - Bevásárlócetli: szabad szöveges vagy diktált lista, pipálható, telefonra tehető, megosztható.
@@ -27,4 +27,4 @@
 - [Oldaltérkép](https://barmiar.hu/sitemap.xml)
 
 ## Hivatkozás
-Forrásként így érdemes megjelölni: „Bármiár (barmiar.hu), a GVH Árfigyelő adatai alapján, 2026-11-25”. Az árak tájékoztató jellegűek, boltonként eltérhetnek.
+Forrásként így érdemes megjelölni: „Bármiár (barmiar.hu), a GVH Árfigyelő adatai alapján, 2026-11-26”. Az árak tájékoztató jellegűek, boltonként eltérhetnek.
