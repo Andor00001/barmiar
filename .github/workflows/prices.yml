@@ -25,3 +25,11 @@ jobs:
           git add -A
           git diff --cached --quiet || git commit -m "Árfrissítés $(date +%F)"
           git push
+      - name: IndexNow értesítés (Bing, Yandex – a friss árakról)
+        continue-on-error: true
+        run: |
+          KEY=dbd80ec69f92dd4686afb0ba72dc33ff
+          URLS=$(grep -o '<loc>[^<]*' sitemap.xml | sed 's/<loc>//' | head -1000 | jq -R . | jq -s -c .)
+          curl -sS -m 30 -o /dev/null -w "IndexNow HTTP %{http_code}\n" -X POST https://api.indexnow.org/indexnow \
+            -H 'Content-Type: application/json; charset=utf-8' \
+            -d "{\"host\":\"barmiar.hu\",\"key\":\"$KEY\",\"keyLocation\":\"https://barmiar.hu/$KEY.txt\",\"urlList\":$URLS}"
