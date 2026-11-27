@@ -13,6 +13,7 @@ const CHAINS = {
   '555f7e7c-8229-4f4f-ba60-450925a5b308': 'dm', '41e81400-3e3d-47b4-84f7-7dce01cc9b43': 'rossmann',
   'e313905a-b57e-4016-b4d2-1d1f45e53157': 'muller',
 };
+const TITLE_FOCUS = new Set(['tojas', 'fokhagyma', 'eper', 'csirkemellfile']);
 const CHAIN_NAMES = { kifli: 'Kifli.hu', aldi: 'Aldi', auchan: 'Auchan', lidl: 'Lidl', penny: 'Penny', spar: 'Spar', tesco: 'Tesco', dm: 'dm', rossmann: 'Rossmann', muller: 'Müller' };
 // kategória-azonosító: [rövid név, keresőszavak ékezet nélkül]
 const CAT = {
@@ -221,7 +222,10 @@ const urls = ['', 'hol-olcsobb/', 'ujsagok.html'];
 for (const c of cats) {
   const rows = Object.entries(c.o).map(([ch, e]) => ({ ch, e })).sort((a, b) => a.e.u - b.e.u);
   const best = rows[0], worst = rows[rows.length - 1];
-  const title = `${c.n} ára boltonként – hol a legolcsóbb ma? | Bármiár`;
+  // gyenge pozíciójú, sok megjelenésű kategóriák (GSC 2026-11-27): „ára ma” + a táblázat első három boltja a címben
+  const title = TITLE_FOCUS.has(c.s)
+    ? `${c.n} ára ma: ${rows.slice(0, 3).map(r => CHAIN_NAMES[r.ch]).join(', ')} – hol a legolcsóbb? | Bármiár`
+    : `${c.n} ára boltonként – hol a legolcsóbb ma? | Bármiár`;
   const desc = `${c.n}: ma a legjobb egységár ${ft(best.e.u)}/${unitLabel(c.u)} (${CHAIN_NAMES[best.ch]}). ${rows.length} áruházlánc ára egy helyen, naponta frissítve.`;
   const ld = { '@context': 'https://schema.org', '@type': 'BreadcrumbList', itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Bármiár', item: SITE }, { '@type': 'ListItem', position: 2, name: 'Hol olcsóbb?', item: SITE + 'hol-olcsobb/' },
